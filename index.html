@@ -274,6 +274,40 @@ h2.sec{background:linear-gradient(90deg,#c4b5fd,#f472b6,#fbbf24);-webkit-backgro
 .winform select{font:500 15px var(--body);padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--raise);color:var(--ink)}
 .winform input{width:120px;font:500 15px var(--body);padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--raise);color:var(--ink)}
 .card.listed .pill.lead{border-style:dashed}
+
+/* ===== Nov 10: plain professional look. Flat slate background, one calm accent per tab, no glow, no moving decoration. Tokens below drive everything. ===== */
+:root{color-scheme:dark;--bg:#12161d;--surface:#1b212b;--raise:#252d3a;--ink:#e9ecf1;--muted:#9ba5b4;--line:#303a4a;
+  --cyan:#6ea6e6;--pink:#6ea6e6;--accent-ink:#0c131d;
+  --good:#5fbf8f;--good-bg:rgba(95,191,143,.14);--warn:#d8a84a;--warn-bg:rgba(216,168,74,.14);--skip:#8c95a4;--skip-bg:rgba(140,149,164,.16)}
+body[data-tab="cars"]{--cyan:#d3a06c} body[data-tab="pallets"]{--cyan:#6fb897} body[data-tab="mail"]{--cyan:#c592b2}
+body{background:var(--bg)}
+body::before,body::after,.aurora,.shoot,.logo,.stars,.bulbs{display:none !important}
+h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor;color:var(--ink);filter:none !important;animation:none !important}
+.led{height:1px;background:var(--line);box-shadow:none;animation:none !important}
+nav{background:var(--bg);box-shadow:none;border-bottom:1px solid var(--line)}
+nav a{border-radius:8px;background:var(--surface)}
+nav a[data-tab="storage"]{border-bottom:3px solid #6ea6e6} nav a[data-tab="cars"]{border-bottom:3px solid #d3a06c}
+nav a[data-tab="pallets"]{border-bottom:3px solid #6fb897} nav a[data-tab="mail"]{border-bottom:3px solid #c592b2}
+nav a[aria-current="page"]{background:var(--raise);border-color:var(--cyan);box-shadow:none !important;animation:none !important}
+.card,.stat,.empty,.calc{border-radius:10px}
+.card,.card.packed,.card.look,.card.listed,.stat,#t-today,#t-new,#t-top,.open,.star[aria-pressed="true"],.sheet,.pill.new,.cdot,.cdot.green,.cdot.yellow,.cdot.red,.btn.dot::after,
+.chips button[aria-pressed="true"],#tagchips button[aria-pressed="true"],.vbtn[aria-pressed="true"],.fontgrid button[aria-pressed="true"]{box-shadow:none !important;animation:none !important}
+.enter>.card,.enter>.card.packed{animation:none !important}
+.stat{background:var(--surface)} #t-today,#t-new,#t-top{border-color:var(--line)}
+#t-today b,#t-new b,#t-top b{text-shadow:none} #t-new b{color:var(--cyan)}
+.chips button[aria-pressed="true"],#tagchips button[aria-pressed="true"],.vbtn[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--accent-ink)}
+.open{background:var(--cyan);color:var(--accent-ink)}
+.bid{color:var(--ink)}
+.pill.new{background:rgba(110,166,230,.16);color:#a9c8f0}
+.pill.lead{background:rgba(110,166,230,.12);color:#a9c8f0}
+.pill.today{background:var(--warn-bg);color:var(--warn)}
+h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(--ink);display:block}
+.tagc{color:var(--muted);background:transparent;border-color:var(--line)}
+.tagc.hot{color:var(--good);background:var(--good-bg);border-color:transparent}
+.getrow b,.elsewhere summary,.calc>summary::after,.winbox summary{color:var(--cyan)}
+.calc{background:var(--bg)}
+.sheet{background:var(--bg);border-left:1px solid var(--line)}
+#viewer{background:#0d1016} .vctl{background:var(--bg)} .vbtn{border-color:var(--line)}
 </style>
 </head>
 <body>
