@@ -499,7 +499,7 @@ function rulesHTML(c){
 function tagRow(x){var t=(x.tags||[]).filter(function(k){return TAGS[k]});return t.length?'<div class="tagrow">'+t.map(function(k){return '<span class="tagc'+(HOT.indexOf(k)>=0?' hot':'')+'">'+esc(TAGS[k])+'</span>'}).join('')+'</div>':''}
 function drawTags(picks){
   var n={}; picks.forEach(function(x){(x.tags||[]).forEach(function(k){n[k]=(n[k]||0)+1})});
-  var keys=Object.keys(TAGS).filter(function(k){return (tab==='storage'&&CORE.indexOf(k)>=0)||n[k]});
+  var keys=Object.keys(TAGS).filter(function(k){return n[k]||k===tagf});
   $('taglabel').textContent=tab==='cars'?'Type and age':"What's inside";
   $('tagchips').innerHTML='<button type="button" data-t="" aria-pressed="'+(tagf===''?'true':'false')+'">Anything</button>'+keys.map(function(k){return '<button type="button" data-t="'+k+'" aria-pressed="'+(tagf===k?'true':'false')+'">'+esc(TAGS[k])+'<span class="c">'+(n[k]||0)+'</span></button>'}).join('');
 }
@@ -769,8 +769,7 @@ function render(){
   var live=function(x){return !prefs.hideClosed||isOpen(x,now)};
   var at=filter==='alltoday', okP=function(x){return !pricef||(x.bid!=null&&x.bid<=pricef)};
   var picks=all.filter(function(x){return okP(x)&&(at?(isToday(x,now)&&isOpen(x,now)):(x.r!=='skip'&&!x.unchecked&&live(x)))}).sort(sorter());
-  var shown=picks.filter(function(x){
-    if(tagf&&(x.tags||[]).indexOf(tagf)<0)return false;
+  var pre=picks.filter(function(x){
     if(!okGet(x,true))return false;
     if(at)return true;
     if(filter==='packed')return x.r==='packed';
@@ -781,10 +780,11 @@ function render(){
     if(filter==='new')return !!x.isNew;
     return true;
   });
+  var shown=tagf?pre.filter(function(x){return (x.tags||[]).indexOf(tagf)>=0}):pre;
   var msg={star:'No starred listings yet. Tap Star on a listing to keep it here.',alltoday:'No auction on the board closes today in this view. Try another area or a wider distance.',today:'No pick on the board closes today.',new:'Nothing new was added in the last hunt.'}[filter]||'No listings match this filter.';
   if(tagf&&!shown.length&&filter==='all')msg=TAGMSG[tagf]||('No picks tagged '+TAGS[tagf]+' right now.');
   if(radius&&!shown.length&&filter==='all'&&!tagf)msg='Nothing on the board within '+radius+' miles of '+prefs.base.n+'. Distances are approximate.';
-  drawTags(picks);
+  drawTags(pre);
   $('picks').innerHTML=shown.length?shown.map(function(x){return card(x,now)}).join(''):'<div class="empty"><p>'+msg+'</p></div>';
   var skips=all.filter(function(x){return !at&&x.r==='skip'&&okP(x)&&live(x)}).sort(function(a,b){return (closeAt(a)||0)-(closeAt(b)||0)});
   $('skips').innerHTML=skips.map(function(x){return card(x,now)}).join('');
