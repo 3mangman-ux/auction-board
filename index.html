@@ -516,7 +516,7 @@ var STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],
 function stateName(c){for(var i=0;i<STATES.length;i++)if(STATES[i][0]===c)return STATES[i][1];return c}
 function stOf(x){return x.state||'MI'}
 function allUnits(t){var c=BOARD&&BOARD[t||tab];return c&&c.units?c.units:[]}
-function units(t){var tt=t||tab;if(radius)return allUnits(t).filter(okMiles);if(tt==='mail'||tt==='pallets')return allUnits(t);return allUnits(t).filter(function(x){return stOf(x)===state&&(x.area||BOARD.area)===area})}
+function units(t){var tt=t||tab;if(tt==='mail'||tt==='pallets')return allUnits(t);if(radius)return allUnits(t).filter(okMiles);return allUnits(t).filter(function(x){return stOf(x)===state&&(x.area||BOARD.area)===area})}
 function stateHunted(){var n=0;TABS.forEach(function(t){allUnits(t).forEach(function(x){if(stOf(x)===state)n++})});return n>0}
 function drawAreas(){
   var has={};TABS.forEach(function(t){allUnits(t).forEach(function(x){has[stOf(x)]=(has[stOf(x)]||0)+1})});
@@ -735,7 +735,7 @@ function render(){
     return;
   }
   if(!BOARD)return;
-  var base=units(), all=base.filter(okMiles), checked=new Date(BOARD.checked).getTime();
+  var base=units(), all=(tab==='mail'||tab==='pallets')?base:base.filter(okMiles), checked=new Date(BOARD.checked).getTime();
   var hrs=Math.floor((now-checked)/3600000);
   var age=hrs<1?'less than an hour ago':(hrs<48?hrs+' hour'+(hrs===1?'':'s')+' ago':Math.floor(hrs/24)+' days ago');
   $('checked-line').textContent=(radius?('Within '+radius+' mi of '+baseShort()):(area||stateName(state)))+'. Last hunt '+dayText(new Date(checked))+', '+timeText(new Date(checked))+' ET ('+age+'). Confirm the bid on the listing before you bid.';
