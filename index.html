@@ -275,13 +275,16 @@ h2.sec{background:linear-gradient(90deg,#c4b5fd,#f472b6,#fbbf24);-webkit-backgro
 .winform input{width:120px;font:500 15px var(--body);padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--raise);color:var(--ink)}
 .card.listed .pill.lead{border-style:dashed}
 
-/* ===== Nov 10: plain professional look. Flat slate background, one calm accent per tab, no glow, no moving decoration. Tokens below drive everything. ===== */
-:root{color-scheme:dark;--bg:#12161d;--surface:#1b212b;--raise:#252d3a;--ink:#e9ecf1;--muted:#9ba5b4;--line:#303a4a;
+/* ===== Nov 10: plain professional look. Slate storage-door background, one calm accent per tab, no neon glow. Tokens below drive everything. ===== */
+:root{color-scheme:dark;--bg:#12161d;--surface:rgba(27,33,43,.93);--raise:#252d3a;--ink:#e9ecf1;--muted:#9ba5b4;--line:#303a4a;
   --cyan:#6ea6e6;--pink:#6ea6e6;--accent-ink:#0c131d;
   --good:#5fbf8f;--good-bg:rgba(95,191,143,.14);--warn:#d8a84a;--warn-bg:rgba(216,168,74,.14);--skip:#8c95a4;--skip-bg:rgba(140,149,164,.16)}
 body[data-tab="cars"]{--cyan:#d3a06c} body[data-tab="pallets"]{--cyan:#6fb897} body[data-tab="mail"]{--cyan:#c592b2}
-body{background:var(--bg)}
-body::before,body::after,.aurora,.shoot,.logo,.stars,.bulbs{display:none !important}
+/* kept on request: roll-up storage door slats, the big Blue Tina's name behind the page, stars, marquee bulbs, shooting star. Removed: blue neon glows and drifting color clouds. */
+body{background:repeating-linear-gradient(180deg,rgba(205,214,230,.13) 0 2px,rgba(205,214,230,.045) 2px 9px,rgba(205,214,230,.02) 9px 27px,rgba(0,0,0,.45) 27px 32px) var(--bg)}
+body::before,body::after,.aurora{display:none !important}
+.logo span{color:rgba(225,231,242,.085);text-shadow:none}
+.bulbs{filter:drop-shadow(0 0 3px rgba(255,255,255,.35))}
 h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;-webkit-text-fill-color:currentColor;color:var(--ink);filter:none !important;animation:none !important}
 .led{height:1px;background:var(--line);box-shadow:none;animation:none !important}
 nav{background:var(--bg);box-shadow:none;border-bottom:1px solid var(--line)}
