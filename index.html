@@ -402,7 +402,7 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
     <span id="vtitle"></span>
     <button type="button" class="vbtn" id="v-close">Close</button>
   </div>
-  <div id="vstage"><img id="vimg" alt="Enlarged photo" draggable="false"></div>
+  <div id="vstage"><img id="vimg" alt="Enlarged photo" draggable="false" referrerpolicy="no-referrer"></div>
   <div class="vctl">
     <div class="vrow">
       <button type="button" class="vbtn" id="v-prev" aria-label="Previous photo">Prev</button>
@@ -615,10 +615,12 @@ function leftText(x,now){
   var t=d>0?d+'d '+h+'h left':(h>0?h+'h '+mm+'m left':mm+'m left');
   return {t:t,c:ms<3*3600000?'soon':''};
 }
+/* Photos: files saved in photos/ when there are any, otherwise the listing's own pictures by address (photoUrls), checked by the hunt. */
+function pics(x){return (x&&x.photos&&x.photos.length)?x.photos:((x&&x.photoUrls)||[])}
 function shots(x){
-  var p=x.photos||[];
+  var p=pics(x);
   if(!p.length)return (x.r==='skip'||x.unchecked)?'':'<p class="nophoto">Photos for this listing are on its page. Use Open listing.</p>';
-  return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210"></button>'}).join('')+'</div><p class="hint">Tap a photo to zoom and clarify.</p>';
+  return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">Tap a photo to zoom and clarify.</p>';
 }
 function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
@@ -921,7 +923,7 @@ function paint(){
 }
 function setClarify(on){if(on){V.b=1.2;V.c=1.25;V.sh=true}else{V.b=1;V.c=1;V.sh=false}}
 function show(){
-  var p=(V.u&&V.u.photos)||[];
+  var p=pics(V.u);
   vimg.src=p[V.i]; V.s=1;V.x=0;V.y=0;
   $('vtitle').textContent=(V.u?String(V.u.fac).split(',')[0]:'Listing')+' · photo '+(V.i+1)+' of '+p.length;
   $('v-prev').disabled=V.i<=0; $('v-next').disabled=V.i>=p.length-1;
@@ -934,7 +936,7 @@ $('v-close').addEventListener('click',closeViewer);
 $('v-in').addEventListener('click',function(){zoomBy(1.5)});
 $('v-out').addEventListener('click',function(){zoomBy(1/1.5)});
 $('v-prev').addEventListener('click',function(){if(V.i>0){V.i--;show()}});
-$('v-next').addEventListener('click',function(){if(V.u&&V.i<V.u.photos.length-1){V.i++;show()}});
+$('v-next').addEventListener('click',function(){if(V.u&&V.i<pics(V.u).length-1){V.i++;show()}});
 $('v-clarify').addEventListener('click',function(){setClarify(this.getAttribute('aria-pressed')!=='true');paint()});
 $('v-sharp').addEventListener('click',function(){V.sh=!V.sh;paint()});
 $('v-bright').addEventListener('input',function(){V.b=+this.value;paint()});
@@ -972,7 +974,7 @@ function checks(){
     rows.push([BOARD.schedule?('Daily hunt: '+BOARD.schedule):'Daily hunt is not scheduled',!!BOARD.schedule]);
     TABS.forEach(function(t){
       var a=units(t); if(!a.length){rows.push([NAMES[t]+': no listings yet',false]);return}
-      var pk=a.filter(function(x){return x.r!=='skip'}), ph=pk.filter(function(x){return x.photos&&x.photos.length}).length;
+      var pk=a.filter(function(x){return x.r!=='skip'}), ph=pk.filter(function(x){return pics(x).length}).length;
       var open=a.filter(function(x){return isOpen(x,now)}).length;
       var links=a.every(function(x){return /^https:\/\//.test(x.url||'')});
       rows.push([NAMES[t]+': '+a.length+' checked, '+open+' still open',open>0]);
