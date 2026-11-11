@@ -359,14 +359,14 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
   </div>
   <div id="has-units">
     <div class="summary">
-      <button type="button" class="stat" id="t-today" data-go="today"><b id="s-today">0</b><span>closing today</span></button>
+      <button type="button" class="stat" id="t-today" data-go="alltoday"><b id="s-today">0</b><span>closing within 24 hours</span></button>
       <button type="button" class="stat" id="t-new" data-go="new"><b id="s-new">0</b><span>new this hunt</span></button>
       <button type="button" class="stat" id="t-top" data-go="packed"><b id="s-top">0</b><span>top picks</span></button>
     </div>
     <div class="chips" role="group" aria-label="Filter listings" id="chips">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">All picks</button>
-      <button type="button" id="f-alltoday" data-f="alltoday" aria-pressed="false">All auctions today</button>
-      <button type="button" id="f-today" data-f="today" aria-pressed="false">Picks today</button>
+      <button type="button" id="f-alltoday" data-f="alltoday" aria-pressed="false">All closing in 24 hours</button>
+      <button type="button" id="f-today" data-f="today" aria-pressed="false">Picks closing in 24 hours</button>
       <button type="button" id="f-new" data-f="new" aria-pressed="false">New</button>
       <button type="button" id="f-packed" data-f="packed" aria-pressed="false">Top picks</button>
       <button type="button" id="f-look" data-f="look" aria-pressed="false">Worth a look</button>
@@ -446,7 +446,7 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
       <div class="list">
         <div class="opt" style="display:block"><span id="fontlabel">Title style. Tap one to try it.</span>
           <div class="fontgrid" id="p-font" role="group" aria-labelledby="fontlabel"></div></div>
-        <label class="opt" for="p-today">Open on today's auctions <input type="checkbox" id="p-today"></label>
+        <label class="opt" for="p-today">Open on auctions closing within 24 hours <input type="checkbox" id="p-today"></label>
         <label class="opt" for="p-big">Larger photos on cards <input type="checkbox" id="p-big"></label>
         <label class="opt" for="p-skips">Show skips opened <input type="checkbox" id="p-skips"></label>
         <label class="opt" for="p-closed">Hide listings that have closed <input type="checkbox" id="p-closed"></label>
@@ -553,7 +553,7 @@ var STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],
 function stateName(c){for(var i=0;i<STATES.length;i++)if(STATES[i][0]===c)return STATES[i][1];return c}
 function stOf(x){return x.state||'MI'}
 function allUnits(t){var c=BOARD&&BOARD[t||tab];return c&&c.units?c.units:[]}
-function units(t){var tt=t||tab;if(tt==='mail'||tt==='pallets')return allUnits(t);if(radius)return allUnits(t).filter(okMiles);return allUnits(t).filter(function(x){return stOf(x)===state&&(x.area||BOARD.area)===area})}
+function units(t){var tt=t||tab,now=Date.now(),a=allUnits(t).filter(function(x){return isOpen(x,now)});if(tt==='mail'||tt==='pallets')return a;if(radius)return a.filter(okMiles);return a.filter(function(x){return stOf(x)===state&&(x.area||BOARD.area)===area})}
 function stateHunted(){var n=0;TABS.forEach(function(t){allUnits(t).forEach(function(x){if(stOf(x)===state)n++})});return n>0}
 function drawAreas(){
   var has={};TABS.forEach(function(t){allUnits(t).forEach(function(x){has[stOf(x)]=(has[stOf(x)]||0)+1})});
@@ -565,7 +565,7 @@ function drawAreas(){
 }
 function closeAt(x){return x.closes?new Date(x.closes).getTime():NaN}
 function isOpen(x,now){if(x.canceled)return false;var c=closeAt(x);return isNaN(c)||c>now}
-function isToday(x,now){var c=closeAt(x);return !isNaN(c)&&dayKey(new Date(c))===dayKey(new Date(now))}
+function isToday(x,now){var c=closeAt(x);return !isNaN(c)&&c>now&&c-now<=864e5} /* "today" now means closing within the next 24 hours */
 
 /* Saved preferences: one viewer, one browser. Works without storage too. */
 var KEY='auctionBoard.v2', storageOK=true;
@@ -634,7 +634,7 @@ function card(x,now){
     vinRow(x)+
     calcHTML(x)+
     winRow(x)+
-    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Today</span>':'')+'</span><span class="acts">'+
+    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
       '<button type="button" class="star" data-star="'+esc(x.id)+'" aria-pressed="'+st+'">'+(st?'★ Starred':'☆ Star')+'</button>'+
       (x.addr?'<a class="star" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(x.addr)+'" target="_blank" rel="noopener">Directions</a>':'')+
       (/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open listing</a>':'')+'</span></div>'+
@@ -772,7 +772,7 @@ function render(){
     return;
   }
   if(!BOARD)return;
-  var base=units(), all=(tab==='mail'||tab==='pallets')?base:base.filter(okMiles), checked=new Date(BOARD.checked).getTime();
+  var base=units(), all=(tab==='mail')?base:base.filter(okMiles), far=base.length-all.length, checked=new Date(BOARD.checked).getTime();
   var hrs=Math.floor((now-checked)/3600000);
   var age=hrs<1?'less than an hour ago':(hrs<48?hrs+' hour'+(hrs===1?'':'s')+' ago':Math.floor(hrs/24)+' days ago');
   $('checked-line').textContent=(radius?('Within '+radius+' mi of '+baseShort()):(area||stateName(state)))+'. Last hunt '+dayText(new Date(checked))+', '+timeText(new Date(checked))+' ET ('+age+'). Confirm the bid on the listing before you bid.';
@@ -818,17 +818,19 @@ function render(){
     return true;
   });
   var shown=tagf?pre.filter(function(x){return (x.tags||[]).indexOf(tagf)>=0}):pre;
-  var msg={star:'No starred listings yet. Tap Star on a listing to keep it here.',alltoday:'No auction on the board closes today in this view. Try another area or a wider distance.',today:'No pick on the board closes today.',new:'Nothing new was added in the last hunt.'}[filter]||'No listings match this filter.';
+  var msg={star:'No starred listings yet. Tap Star on a listing to keep it here.',alltoday:'No auction on the board closes within 24 hours in this view. Try another area or a wider distance.',today:'No pick on the board closes within 24 hours.',new:'Nothing new was added in the last hunt.'}[filter]||'No listings match this filter.';
   if(tagf&&!shown.length&&filter==='all')msg=TAGMSG[tagf]||('No picks tagged '+TAGS[tagf]+' right now.');
   if(radius&&!shown.length&&filter==='all'&&!tagf)msg='Nothing on the board within '+radius+' miles of '+prefs.base.n+'. Distances are approximate.';
   drawTags(pre);
-  $('picks').innerHTML=shown.length?shown.map(function(x){return card(x,now)}).join(''):'<div class="empty"><p>'+msg+'</p></div>';
+  if(tab==='pallets'&&radius&&far>0&&!shown.length&&filter==='all'&&!tagf)msg='No pallet lot on the board is within '+radius+' miles of '+prefs.base.n+'.';
+  var farNote=(tab==='pallets'&&radius&&far>0)?'<div class="empty"><p>'+far+' pallet '+(far===1?'lot is':'lots are')+' farther than '+radius+' miles from '+esc(prefs.base.n)+' and hidden. Some of them ship. To see them, set "Show only within" to a longer distance or to Any distance.</p></div>':'';
+  $('picks').innerHTML=(shown.length?shown.map(function(x){return card(x,now)}).join(''):'<div class="empty"><p>'+msg+'</p></div>')+farNote;
   var skips=all.filter(function(x){return !at&&x.r==='skip'&&okP(x)&&live(x)}).sort(function(a,b){return (closeAt(a)||0)-(closeAt(b)||0)});
   $('skips').innerHTML=skips.map(function(x){return card(x,now)}).join('');
   $('skips-sum').textContent='Skips ('+skips.length+')';
   $('skips-box').hidden=!skips.length;
   var pk=all.filter(function(x){return x.r!=='skip'&&!x.unchecked});
-  $('s-today').textContent=pk.filter(function(x){return isToday(x,now)&&isOpen(x,now)}).length;
+  $('s-today').textContent=all.filter(function(x){return isToday(x,now)&&isOpen(x,now)}).length;
   $('s-new').textContent=pk.filter(function(x){return x.isNew}).length;
   $('s-top').textContent=pk.filter(function(x){return x.r==='packed'}).length;
   var c=BOARD[tab], ex='';
