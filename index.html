@@ -620,7 +620,8 @@ function pics(x){return (x&&x.photos&&x.photos.length)?x.photos:((x&&x.photoUrls
 function shots(x){
   var p=pics(x);
   if(!p.length)return (x.r==='skip'||x.unchecked)?'':'<p class="nophoto">Photos for this listing are on its page. Use Open listing.</p>';
-  return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">Tap a photo to zoom and clarify.</p>';
+  var un=!!x.photoUnchecked&&!(x.photos&&x.photos.length);
+  return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">'+(un?'First photo from the listing. Nobody has checked it yet. Tap to zoom.':'Tap a photo to zoom and clarify.')+'</p>';
 }
 function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
