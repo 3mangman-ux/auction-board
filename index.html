@@ -311,6 +311,14 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
 .calc{background:var(--bg)}
 .sheet{background:var(--bg);border-left:1px solid var(--line)}
 #viewer{background:#0d1016} .vctl{background:var(--bg)} .vbtn{border-color:var(--line)}
+/* Live tab (Nov 11): in-person auctions by date */
+body[data-tab="live"]{--cyan:#a99ad8} nav a[data-tab="live"]{border-bottom:3px solid #a99ad8}
+body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[data-tab="live"] label[for="pricef"],body[data-tab="live"] #get-wrap{display:none}
+#no-units .chips .c{margin-left:6px;opacity:.7}
+.ltime{font:600 18px var(--display);color:var(--cyan);white-space:nowrap;text-align:right}
+.ltime.none{font:500 13px var(--body);color:var(--muted)}
+.sec small{font:500 13px var(--body);color:var(--muted);margin-left:8px;text-transform:none;letter-spacing:0}
+@media (max-width:440px){nav a{font-size:14px} nav a .n{font-size:9px}}
 </style>
 </head>
 <body>
@@ -334,6 +342,7 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
   <a href="#cars" data-tab="cars">Cars<span class="n" id="n-cars">&nbsp;</span></a>
   <a href="#pallets" data-tab="pallets">Pallets<span class="n" id="n-pallets">&nbsp;</span></a>
   <a href="#mail" data-tab="mail">Mail<span class="n" id="n-mail">&nbsp;</span></a>
+  <a href="#live" data-tab="live">Live<span class="n" id="n-live">&nbsp;</span></a>
 </nav>
 
 <main>
@@ -525,6 +534,70 @@ var GET={pickup:'Pickup only',ship:'Ships to you',both:'Pickup or shipping',unkn
 function getOf(x,isUnit){return GET[x.get]?x.get:(isUnit&&tab==='storage'?'pickup':'unknown')}
 function getRow(x,isUnit){var g=getOf(x,isUnit);return '<p class="getrow"><b>'+GET[g]+'</b>'+(x.getNote?'<span class="gn">'+esc(x.getNote)+'</span>':'')+'</p>'}
 function okGet(x,isUnit){if(!getf)return true;var g=getOf(x,isUnit);return g===getf||g==='both'}
+/* Live tab (Nov 11): in-person auctions as dated events, not units. From BOARD.live.events plus the in-person rows of BOARD.cars.upcoming, so police and tow-yard dates are kept in one place. */
+var LKIND={storage:'Storage units',cars:'Cars',estate:'Estate and general'}, livef='';
+var MON={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+function todayNum(){var p=dayKey(new Date()).split('/');return (+p[2])*10000+(+p[0])*100+(+p[1])}
+function numUTC(n){return Date.UTC(Math.floor(n/10000),Math.floor(n/100)%100-1,n%100,12)}
+function liveList(){
+  var out=[],L=BOARD&&BOARD.live,tn=todayNum(),ty=Math.floor(tn/10000),tm=Math.floor(tn/100)%100;
+  ((L&&L.events)||[]).forEach(function(e){
+    var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(e.date||''); if(!m)return;
+    var o={};for(var k in e)o[k]=e[k]; o.n=(+m[1])*10000+(+m[2])*100+(+m[3]); o.kind=LKIND[e.kind]?e.kind:'estate'; out.push(o);
+  });
+  var cs=(BOARD&&BOARD.cars&&BOARD.cars.sources)||[];
+  ((BOARD&&BOARD.cars&&BOARD.cars.upcoming)||[]).forEach(function(u,i){
+    if(!/in person/i.test(u.type||''))return;
+    var m=/([A-Z][a-z]{2}) (\d{1,2})(?:,\s*(\d{1,2}):(\d\d)\s*([AP]M))?/.exec(u.when||''); if(!m||!MON[m[1]])return;
+    var mo=MON[m[1]], y=ty+(mo<tm-6?1:0), hh=m[3]?((+m[3])%12+(m[5]==='PM'?12:0)):null;
+    var w=String(u.where||''), dot=w.indexOf('. '), place=dot>0?w.slice(0,dot):w.replace(/\.$/,''), rest=dot>0?w.slice(dot+2):'';
+    var mid=/Midwest Auto/i.test(place), src=null; cs.forEach(function(x){if(!src&&(mid?/Midwest Auto/i:/Police/i).test(x.name||''))src=x});
+    out.push({id:'car'+i,kind:'cars',n:y*10000+mo*100+(+m[2]),time:hh==null?null:(hh<10?'0':'')+hh+':'+m[4],
+      title:(mid?'':'Detroit Police vehicle auction at ')+place.split(',')[0],who:mid?'':'City of Detroit',addr:place+', MI',city:'',
+      note:(rest?rest+' ':'')+'Rules and vehicle lists are on the Cars tab.',url:src?src.url:'',status:'ok'});
+  });
+  return out.filter(function(e){return e.n>=tn&&(!radius||typeof e.lat!=='number'||okMiles(e))})
+    .sort(function(a,b){return a.n-b.n||String(a.time||'99').localeCompare(String(b.time||'99'))});
+}
+function liveTime(t){if(!t)return '<div class="ltime none">Time not listed</div>';var p=String(t).split(':'),h=+p[0];return '<div class="ltime">'+((h+11)%12+1)+':'+esc(p[1])+' '+(h<12?'AM':'PM')+'</div>'}
+function liveCard(e){
+  var d=milesTo(e), dest=e.addr||((e.city||'')+(e.state?', '+e.state:''));
+  return '<article class="card src-'+(e.status==='ok'?'ok':'check')+(e.canceled?' closed':'')+'"><div class="top"><h3>'+esc(e.title)+'</h3>'+liveTime(e.time)+'</div>'+
+    '<div class="meta"><span>'+LKIND[e.kind]+'</span>'+(e.city?'<span>'+esc(e.city)+(e.state?', '+esc(e.state):'')+'</span>':'')+(d!=null?'<span>about '+d+' mi from '+esc(baseShort())+'</span>':'')+(e.who?'<span>'+esc(e.who)+'</span>':'')+'</div>'+
+    (e.addr?'<p class="srcwhere">'+esc(e.addr)+'</p>':'')+(e.note?'<p class="note">'+esc(e.note)+'</p>':'')+
+    '<div class="row"><span class="tags">'+(e.canceled?'<span class="pill red">Canceled</span>':'')+(e.status==='ok'?'<span class="pill ok">Open to the public</span>':'<span class="pill warn">Public terms not read yet</span>')+'</span><span class="acts">'+
+    (dest.replace(/[, ]/g,'')?'<a class="star" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(dest)+'" target="_blank" rel="noopener">Directions</a>':'')+
+    (/^https:\/\//.test(e.url||'')?'<a class="open" href="'+esc(e.url)+'" target="_blank" rel="noopener">Open listing</a>':'')+'</span></div></article>';
+}
+function renderLive(){
+  var L=(BOARD&&BOARD.live)||{}, all=liveList(), tn=todayNum(), n={};
+  all.forEach(function(e){n[e.kind]=(n[e.kind]||0)+1});
+  if(livef&&!n[livef])livef='';
+  var shown=livef?all.filter(function(e){return e.kind===livef}):all;
+  var ck=L.checked?new Date(L.checked):null;
+  $('checked-line').textContent=(radius?('Within '+radius+' mi of '+baseShort()+'. '):'')+'Live in-person auctions'+(ck&&!isNaN(ck)?', searched '+dayText(ck):'')+'. Dates change: confirm on the listing before you drive.';
+  $('stale').hidden=true; $('has-units').hidden=true; $('picks').innerHTML='';$('skips').innerHTML='';$('extras').innerHTML='';
+  var box=$('no-units'); box.hidden=false; box.className='';
+  var h='<div class="empty"><h2>Live in-person auctions</h2><p>'+esc(L.intro||'Auctions you attend in person, soonest first.')+'</p></div>';
+  h+='<div class="chips" role="group" aria-label="Kind of auction" style="margin-top:10px"><button type="button" data-lk="" aria-pressed="'+(livef===''?'true':'false')+'">All<span class="c">'+all.length+'</span></button>'+
+    Object.keys(LKIND).filter(function(k){return n[k]}).map(function(k){return '<button type="button" data-lk="'+k+'" aria-pressed="'+(livef===k?'true':'false')+'">'+LKIND[k]+'<span class="c">'+n[k]+'</span></button>'}).join('')+'</div>';
+  if(!shown.length)h+='<div class="empty"><p>'+(radius?'No live auction on the board within '+radius+' miles of '+esc(prefs.base.n)+'. Try a longer distance.':'No upcoming live auction is on the board yet. The weekly search adds them.')+'</p></div>';
+  var last=0;
+  shown.forEach(function(e){
+    if(e.n!==last){
+      if(last)h+='</div>';
+      var df=Math.round((numUTC(e.n)-numUTC(tn))/86400000), lbl=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(numUTC(e.n)));
+      h+='<h2 class="sec">'+esc(lbl)+'<small>'+(df===0?'today':df===1?'tomorrow':'in '+df+' days')+'</small></h2><div class="list">'; last=e.n;
+    }
+    h+=liveCard(e);
+  });
+  if(last)h+='</div>';
+  if(L.sources&&L.sources.length)h+='<h2 class="sec">Places that hold live auctions</h2><div class="list">'+L.sources.map(function(x){var st=SRC[x.status]||SRC.check;
+    return '<article class="card src-'+esc(x.status)+'"><div class="top"><h3>'+esc(x.name)+'</h3></div>'+(x.where?'<p class="srcwhere">'+esc(x.where)+'</p>':'')+'<p class="note">'+esc(x.note)+'</p><div class="row"><span class="tags"><span class="pill '+st[1]+'">'+st[0]+'</span></span>'+(/^https:\/\//.test(x.url||'')?'<span class="acts"><a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open site</a></span>':'')+'</div></article>'}).join('')+'</div>';
+  h+='<p class="small" style="margin-top:10px">Searched once a week. Car auction dates come from the Cars tab and refresh with the nightly hunt. Unit counts, times and even dates change, so check the listing or call before you go.</p>';
+  box.innerHTML=h;
+}
+document.addEventListener('click',function(e){var b=e.target.closest?e.target.closest('[data-lk]'):null;if(!b)return;livef=b.getAttribute('data-lk')||'';render()});
 function upcomingHTML(c){
   if(!(c&&c.upcoming&&c.upcoming.length))return '';
   return '<h2 class="sec">'+esc(c.upcomingTitle||'Coming up, not photo-checked yet')+'</h2><div class="tw"><table><thead><tr><th>When</th><th>Where</th><th>Type</th></tr></thead><tbody>'+c.upcoming.map(function(u){return '<tr><td>'+esc(u.when)+'</td><td>'+esc(u.where)+'</td><td>'+esc(u.type)+'</td></tr>'}).join('')+'</tbody></table></div>'+(c.upcomingNote?'<p class="small" style="margin-top:6px">'+esc(c.upcomingNote)+'</p>':'');
@@ -769,6 +842,7 @@ function render(){
     var n=units(t).length, ns=BOARD&&BOARD[t]&&BOARD[t].sources?BOARD[t].sources.length:0;
     $('n-'+t).textContent=loadError?'not loaded':(BOARD?(n?n+' listed':(ns?ns+(ns===1?' place':' places'):'none yet')):' ');
   });
+  var ln=BOARD?liveList().length:0; $('n-live').textContent=loadError?'not loaded':(BOARD?(ln?ln+' coming':'none yet'):'');
   if(loadError){
     $('checked-line').textContent='The listings did not load.';
     $('has-units').hidden=true; $('stale').hidden=true;
@@ -776,6 +850,7 @@ function render(){
     return;
   }
   if(!BOARD)return;
+  if(tab==='live'){renderLive();return}
   var base=units(), all=(tab==='mail')?base:base.filter(okMiles), far=base.length-all.length, checked=new Date(BOARD.checked).getTime();
   var hrs=Math.floor((now-checked)/3600000);
   var age=hrs<1?'less than an hour ago':(hrs<48?hrs+' hour'+(hrs===1?'':'s')+' ago':Math.floor(hrs/24)+' days ago');
@@ -1015,8 +1090,8 @@ document.addEventListener('keydown',function(e){
 /* Tabs */
 function route(){
   var h=(location.hash||'').replace('#','');
-  var nt=TABS.indexOf(h)<0?'storage':h; if(nt!==tab)tagf=''; tab=nt; document.body.setAttribute('data-tab',tab);
-  TABS.forEach(function(t){
+  var nt=(TABS.indexOf(h)<0&&h!=='live')?'storage':h; if(nt!==tab)tagf=''; tab=nt; document.body.setAttribute('data-tab',tab);
+  TABS.concat(['live']).forEach(function(t){
     var a=document.querySelector('nav a[data-tab="'+t+'"]');
     if(t===tab)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
   });
