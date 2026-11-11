@@ -429,7 +429,7 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
     <div id="mine-list"></div>
     <div>
       <h3>Auction accounts</h3>
-      <p class="small">Each site has its own free sign-up. Tick a site once you have an account so you can see what is left to set up. Passwords are never entered or stored here.</p>
+      <p class="small">Each site has its own free sign-up. Tick a site once you have an account so you can see what is left to set up. Passwords are never entered or stored here. "Sign in on their site" opens that site's own sign-in page; your bids and watch lists stay on their site, and the board cannot show them.</p>
       <div class="list" id="acct-list"></div>
     </div>
   </div>
@@ -644,16 +644,17 @@ function card(x,now){
 }
 var openCalc={};
 var MST=[['watch','Watching'],['bid','Bid placed'],['winning','Winning'],['outbid','Outbid'],['won','Won'],['lost','Lost']];
-var ACCTS=[['st','StorageTreasures','https://www.storagetreasures.com/','Open to the public. Free account.','Storage'],
-['lf','Lockerfox','https://www.lockerfox.com/account/login/','Open to the public. Free account.','Storage'],
-['b13','Bid13','https://bid13.com/','Open to the public. Free account. You pay only if you win.','Storage'],
-['gd','GovDeals','https://www.govdeals.com/','Open to the public. Free account. Each seller sets its own terms.','Cars, mail lots, surplus'],
+var ACCTS=[['st','StorageTreasures','https://www.storagetreasures.com/','Open to the public. Free account.','Storage','https://www.storagetreasures.com/account/login','https://www.storagetreasures.com/register'],
+['lf','Lockerfox','https://www.lockerfox.com/','Open to the public. Free account.','Storage','https://www.lockerfox.com/account/login/',''],
+['b13','Bid13','https://bid13.com/','Open to the public. Free account. You pay only if you win.','Storage','https://bid13.com/user/login','https://bid13.com/user/register'],
+['gd','GovDeals','https://www.govdeals.com/','Open to the public. Free account. Each seller sets its own terms. Its Sign In button is at the top of its home page.','Cars, mail lots, surplus','','https://www.govdeals.com/en/account/register'],
 ['mb','MiBid, State of Michigan','https://www.michigan.gov/mibid','Open to everyone. Needs a free MiLogin profile.','Cars, surplus, pallets'],
-['hb','HiBid','https://hibid.com/','Open to the public. Each auction house approves bidders and sets fees.','Pallets, collectibles, cars'],
+['hb','HiBid','https://hibid.com/','Open to the public. Each auction house approves bidders and sets fees.','Pallets, collectibles, cars','https://hibid.com/login','https://hibid.com/pf/signup'],
+['lqd','Liquidation.com','https://www.liquidation.com/','Open to the public. Free account, checked within about 72 hours. Needs a card and shipping address on file. Sales tax is charged unless you file an exemption.','Pallets','https://www.liquidation.com/login','https://www.liquidation.com/register'],
+['bgy','Biddergy','https://www.biddergy.com/','Open to the public, 18 or older. Free account. 15% to 18% buyer premium.','Cars, surplus pallets','https://www.biddergy.com/Account/Logon','https://www.biddergy.com/Account/Logon'],
 ['px','Proxibid','https://www.proxibid.com/','Not confirmed yet. Each auction house sets its own bidder rules.','Cars, equipment'],
 ['cp','Copart','https://www.copart.com/','Only vehicles marked "No License Required". Everything else needs a dealer license.','Cars'],
 ['ia','IAA','https://www.iaai.com/','Not confirmed. Most vehicles need a license. Check each one.','Cars'],
-['lq','Liquidation.com','https://www.liquidation.com/','Not confirmed yet for buyers without a resale certificate.','Pallets'],
 ['bs','B-Stock','https://bstock.com/','Not for you right now: needs a resale certificate.','Pallets']];
 function findUnit(id){var r=null;TABS.forEach(function(t){allUnits(t).forEach(function(x){if(x.id===id)r={x:x,t:t}})});return r}
 function mineHTML(){
@@ -669,7 +670,7 @@ function mineHTML(){
       '<div class="winform"><label>Status <select data-mst="'+esc(x.id)+'">'+MST.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===s?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label>'+
       '<label>My bid, $ <input type="number" inputmode="decimal" min="0" step="1" data-mbid="'+esc(x.id)+'" value="'+(m.b!=null?m.b:'')+'"></label></div>'+
       '<div class="row"><span class="tags"></span><span class="acts"><button type="button" class="star" data-unmine="'+esc(x.id)+'">Remove</button>'+(/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open and bid</a>':'')+'</span></div></article>'}).join('')+'</div>'}
-function acctHTML(){return ACCTS.map(function(a){var on=!!prefs.accts[a[0]];return '<article class="card"><div class="top"><h3>'+esc(a[1])+'</h3></div><p class="srcwhere">'+esc(a[4])+'. Bidding: on their site only.</p><p class="note">'+esc(a[3])+'</p><div class="row"><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-acct="'+a[0]+'"'+(on?' checked':'')+'> I have an account</label><span class="acts"><a class="open" href="'+a[2]+'" target="_blank" rel="noopener">'+(on?'Sign in':'Sign up')+' on site</a></span></div></article>'}).join('')}
+function acctHTML(){return ACCTS.map(function(a){var on=!!prefs.accts[a[0]];return '<article class="card"><div class="top"><h3>'+esc(a[1])+'</h3></div><p class="srcwhere">'+esc(a[4])+'. Bidding: on their site only.</p><p class="note">'+esc(a[3])+'</p><div class="row"><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-acct="'+a[0]+'"'+(on?' checked':'')+'> I have an account</label><span class="acts"><a class="star" href="'+(a[6]||a[2])+'" target="_blank" rel="noopener">Sign up</a><a class="open" href="'+(a[5]||a[2])+'" target="_blank" rel="noopener">Sign in on their site</a></span></div></article>'}).join('')}
 function drawMine(){$('mine-list').innerHTML=mineHTML();$('acct-list').innerHTML=acctHTML()}
 function vinRow(x){if(!x.vin)return '';var v=esc(x.vin);return '<p class="vinrow"><span>VIN '+v+'</span><button type="button" class="star" data-copyvin="'+v+'">Copy VIN</button><a class="star" href="https://www.nhtsa.gov/recalls?vin='+encodeURIComponent(x.vin)+'" target="_blank" rel="noopener">Recalls (NHTSA)</a><a class="star" href="https://www.nicb.org/vincheck" target="_blank" rel="noopener">Theft and salvage check (NICB)</a></p>'}
 function winOf(id){for(var i=0;i<prefs.wins.length;i++)if(prefs.wins[i].id===id)return prefs.wins[i];return null}
