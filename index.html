@@ -313,6 +313,7 @@ h2.sec,.sheet h3{background:none;-webkit-text-fill-color:currentColor;color:var(
 #viewer{background:#0d1016} .vctl{background:var(--bg)} .vbtn{border-color:var(--line)}
 /* Live tab (Nov 11): in-person auctions by date */
 body[data-tab="live"]{--cyan:#a99ad8} nav a[data-tab="live"]{border-bottom:3px solid #a99ad8}
+#salechips{display:none} body[data-tab="pallets"] #salechips{display:flex}
 body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[data-tab="live"] label[for="pricef"],body[data-tab="live"] #get-wrap{display:none}
 #no-units .chips .c{margin-left:6px;opacity:.7}
 .ltime{font:600 18px var(--display);color:var(--cyan);white-space:nowrap;text-align:right}
@@ -372,6 +373,7 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
       <button type="button" class="stat" id="t-new" data-go="new"><b id="s-new">0</b><span>new this hunt</span></button>
       <button type="button" class="stat" id="t-top" data-go="packed"><b id="s-top">0</b><span>top picks</span></button>
     </div>
+    <div class="chips" role="group" aria-label="Auction or for sale" id="salechips"><button type="button" data-s="" aria-pressed="true">All pallets</button><button type="button" data-s="auction" aria-pressed="false">Auction pallets</button><button type="button" data-s="fixed" aria-pressed="false">For sale pallets</button></div>
     <div class="chips" role="group" aria-label="Filter listings" id="chips">
       <button type="button" id="f-all" data-f="all" aria-pressed="true">All picks</button>
       <button type="button" id="f-alltoday" data-f="alltoday" aria-pressed="false">All closing in 24 hours</button>
@@ -492,7 +494,7 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
 
 <script>
 var TABS=['storage','cars','pallets','mail'];
-var NAMES={storage:'Storage auctions',cars:'Car auctions',pallets:'Pallet auctions',mail:'Unclaimed mail and packages'};
+var NAMES={storage:'Storage auctions',cars:'Car auctions',pallets:'Pallets: auctions and for sale',mail:'Unclaimed mail and packages'};
 var PLANNED={
   cars:['Public sales only. No dealer license is needed for anything listed here.','Planned sources: police and tow-yard impound auctions, city and county surplus sales, and other auctions that let the public register and bid.','Each car will show year, make, model, mileage if listed, title status, current bid, and closing time.'],
   pallets:['Public sales only. Sellers that require a business account or resale certificate are left out.','Planned sources: retailer return and overstock liquidation sites with Michigan pickup, plus local liquidation warehouses.','Each pallet will show the category, item count or manifest if posted, condition grade, current bid, and pickup location.'],
@@ -530,7 +532,8 @@ function milesTo(x){if(typeof x.lat!=='number'||typeof x.lon!=='number')return n
 function baseShort(){return String(prefs.base.n).split(',')[0]}
 function drawBase(){var named=CITIES.some(function(c){return c[0]===prefs.base.n});$('base').innerHTML=(named?'':'<option value="cur" selected>'+esc(prefs.base.n)+'</option>')+'<option value="gps">Use my location now</option>'+CITIES.map(function(c,i){return '<option value="'+i+'"'+(c[0]===prefs.base.n?' selected':'')+'>'+esc(c[0])+'</option>'}).join('')}
 function okMiles(x){if(!radius)return true;var d=milesTo(x);return d!=null&&d<=radius}
-var GET={pickup:'Pickup only',ship:'Ships to you',both:'Pickup or shipping',unknown:'Pickup or shipping not stated'}, getf='';
+var GET={pickup:'Pickup only',ship:'Ships to you',both:'Pickup or shipping',unknown:'Pickup or shipping not stated'}, getf='', salef='';
+function saleOf(x){return x.sale||(x.closes?'auction':'fixed')}
 function getOf(x,isUnit){return GET[x.get]?x.get:(isUnit&&tab==='storage'?'pickup':'unknown')}
 function getRow(x,isUnit){var g=getOf(x,isUnit);return '<p class="getrow"><b>'+GET[g]+'</b>'+(x.getNote?'<span class="gn">'+esc(x.getNote)+'</span>':'')+'</p>'}
 function okGet(x,isUnit){if(!getf)return true;var g=getOf(x,isUnit);return g===getf||g==='both'}
@@ -699,7 +702,7 @@ function shots(x){
 function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
   if(!isNaN(c)){var d=new Date(c); when='Closes '+dayText(d)+', '+(x.approx?'about ':'')+timeText(d)+' ET'}
-  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>at last check</small></div>';
+  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':'at last check')+'</small></div>';
   return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+'">'+
     '<div class="top"><h3>'+esc(x.fac)+'</h3>'+price+'</div>'+
     '<div class="meta">'+(x.size?'<span>'+esc(x.size)+'</span>':'')+(when?'<span>'+when+'</span>':'')+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(milesTo(x)!=null?'<span>about '+milesTo(x)+' mi from '+esc(baseShort())+'</span>':'')+(x.seen?'<span>Photos checked '+dayText(new Date(x.seen+'T12:00:00'))+'</span>':'')+'<span>'+esc(x.src)+' #'+esc(x.id)+'</span></div>'+
@@ -885,8 +888,10 @@ function render(){
   var live=function(x){return !prefs.hideClosed||isOpen(x,now)};
   var at=filter==='alltoday', okP=function(x){return !pricef||(x.bid!=null&&x.bid<=pricef)};
   var picks=all.filter(function(x){return okP(x)&&(at?(isToday(x,now)&&isOpen(x,now)):(x.r!=='skip'&&!x.unchecked&&live(x)))}).sort(sorter());
+  if(tab==='pallets'){var sc={'':0,auction:0,fixed:0};picks.forEach(function(x){if(okGet(x,true)){sc['']++;sc[saleOf(x)]++}});document.querySelectorAll('#salechips button').forEach(function(o){var k=o.getAttribute('data-s');o.textContent=(k===''?'All pallets':k==='auction'?'Auction pallets':'For sale pallets')+' ('+sc[k]+')'})}
   var pre=picks.filter(function(x){
     if(!okGet(x,true))return false;
+    if(tab==='pallets'&&salef&&saleOf(x)!==salef)return false;
     if(at)return true;
     if(filter==='packed')return x.r==='packed';
     if(filter==='look')return x.r==='look';
@@ -949,6 +954,7 @@ $('base').addEventListener('change',function(){var v=this.value;
     try{navigator.geolocation.getCurrentPosition(function(p){prefs.base={n:'My location',lat:p.coords.latitude,lon:p.coords.longitude};save();drawBase();baseNote();render();enter()},fail,{timeout:8000,maximumAge:600000})}catch(e){fail()}return}
   if(v==='cur')return; var c=CITIES[+v]; if(!c)return; prefs.base={n:c[0],lat:c[1],lon:c[2]};save();baseNote();render();enter()});
 $('getf').addEventListener('change',function(){getf=this.value;render();enter()});
+document.querySelectorAll('#salechips button').forEach(function(b){b.addEventListener('click',function(){salef=b.getAttribute('data-s');document.querySelectorAll('#salechips button').forEach(function(o){o.setAttribute('aria-pressed',o===b?'true':'false')});render();enter()})});
 $('pricef').addEventListener('change',function(){pricef=+this.value||0;render();enter()});
 $('area').addEventListener('change',function(){area=this.value;tagf='';render();enter()});
 $('state').addEventListener('change',function(){state=this.value;tagf='';radius=0;prefs.radius=0;save();$('radius').value='';baseNote();drawAreas();render();enter()});
