@@ -323,7 +323,7 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
 /* Group 2 (Nov 13): closing-price history, my max bid, red flags */
 .card.over,.card.over.packed,.card.over.look{border-left-color:#e06666 !important;background:linear-gradient(90deg,rgba(224,102,102,.13),rgba(224,102,102,0) 45%),var(--surface)}
 .hist{margin:8px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.45}
-.hist b{color:var(--ink)}
+.hist b{color:var(--ink)} .hist a{color:var(--cyan)}
 .maxrow{margin:8px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .maxrow label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
 .maxrow input{width:96px}
@@ -717,11 +717,12 @@ function shots(x){
   var un=!!x.photoUnchecked&&!(x.photos&&x.photos.length);
   return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">'+(un?'First photo from the listing. Nobody has checked it yet. Tap to zoom.':'Tap a photo to zoom and clarify.')+'</p>';
 }
+function isFixed(x){return (tab==='pallets'||tab==='mail')&&saleOf(x)==='fixed'}
 function bidAsOf(x){var d=new Date((x&&x.bidAt)||(BOARD&&BOARD.checked));return isNaN(d)?'at last check':'bid as of '+dayText(d)+', '+timeText(d)}
 function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
   if(!isNaN(c)){var d=new Date(c); when='Closes '+dayText(d)+', '+(x.approx?'about ':'')+timeText(d)+' ET'}
-  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':bidAsOf(x))+'</small></div>';
+  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(isFixed(x)?(/ to \$/.test(x.size||'')?'lowest price listed':'asking price'):bidAsOf(x))+'</small></div>';
   var fl=flagsOf(x);
   return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+(overMax(x)?' over':'')+'">'+
     '<div class="top"><h3>'+esc(x.fac)+'</h3>'+price+'</div>'+
@@ -730,7 +731,7 @@ function card(x,now){
     tagRow(x)+
     shots(x)+
     '<p class="note">'+esc(x.note)+'</p>'+
-    histLine(x,now)+maxRow(x,false)+
+    histLine(x,now)+unitCost(x)+dupLine(x,now)+maxRow(x,false)+
     vinRow(x)+
     calcHTML(x)+
     winRow(x)+
@@ -880,6 +881,16 @@ function facKey(x){return String(x.src||'')+'|'+String(x.fac||'').toLowerCase().
 function facLine(x){if(!x.fac)return '';var k=facKey(x),a=histAll().filter(function(e){return e.id!==x.id&&e.fac&&facKey(e)===k});if(a.length<2)return '';
   var v=a.map(function(e){return e.bid}).sort(function(m,n){return m-n});
   return '<p class="hist"><b>This facility:</b> '+a.length+' earlier units closed around <b>'+money(qt(v,.5))+'</b> (from '+money(v[0])+' to '+money(v[v.length-1])+'). Same caution: mostly last bids seen, not finals.</p>'}
+/* Nov 13: cost per package or per pound, only from counts the listing itself ties to the price (pkgCount, lbs). */
+function unitCost(x){if(typeof x.bid!=='number'||x.bid<=0)return '';var t=[],f=x.fees&&typeof x.fees.premiumPct==='number'?x.fees.premiumPct:0,c=x.bid*(1+f/100);
+  if(typeof x.pkgCount==='number'&&x.pkgCount>0)t.push('about '+x.pkgCount+' packages, '+(c/x.pkgCount<10?'$'+(c/x.pkgCount).toFixed(2):money(c/x.pkgCount))+' each');
+  if(typeof x.lbs==='number'&&x.lbs>0)t.push('about '+x.lbs+' lb, $'+(c/x.lbs).toFixed(2)+' a pound');
+  if(!t.length)return '';return '<p class="hist"><b>Per unit:</b> '+t.join('; ')+(f?' (at '+(isFixed(x)?'this price':'this bid')+' plus the '+f+'% premium, before tax and shipping)':' (at '+(isFixed(x)?'this price':'this bid')+', before tax, fees and shipping)')+'. Counts are the listing\'s own.</p>'}
+/* Same unit on two sites: same street address and size, closing within a day of each other, different site. */
+function addrKey(x){var a=String(x.addr||'').toLowerCase(),m=/^(\d+)\s+([a-z0-9]+(?:\s+[a-z0-9]+)?)/.exec(a.replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim());return m?m[1]+' '+m[2]:''}
+function dupLine(x,now){if(tab!=='storage')return '';var k=addrKey(x),sz=String(x.size||'').replace(/\s/g,'').toLowerCase(),c=closeAt(x);if(!k||!sz)return '';
+  var d=allUnits('storage').filter(function(o){return o!==x&&o.src!==x.src&&isOpen(o,now)&&addrKey(o)===k&&String(o.size||'').replace(/\s/g,'').toLowerCase()===sz&&(isNaN(c)||isNaN(closeAt(o))||Math.abs(closeAt(o)-c)<864e5)});
+  if(!d.length)return '';return '<p class="hist"><b>Maybe the same unit</b> is also on '+d.map(function(o){return '<a href="'+esc(o.url)+'" target="_blank" rel="noopener">'+esc(o.src)+'</a> ($'+esc(o.bid)+')'}).join(', ')+': same address and size, closing about the same time. Compare before you bid.</p>'}
 function myMax(id){var m=prefs.mine[id];return m&&typeof m.mx==='number'?m.mx:null}
 function overMax(x){var mx=myMax(x.id);return mx!=null&&typeof x.bid==='number'&&x.bid>mx}
 function maxRow(x,inMine){
