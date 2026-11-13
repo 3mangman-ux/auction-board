@@ -354,7 +354,7 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
     <label class="sortbox" for="base" id="base-wrap">Measure distance from <select id="base"></select></label>
     <label class="sortbox" for="radius" id="radius-wrap">Show only within <select id="radius"><option value="">Any distance</option><option value="5">5 miles</option><option value="10">10 miles</option><option value="25">25 miles</option><option value="50">50 miles</option><option value="100">100 miles</option><option value="200">200 miles</option><option value="300">300 miles</option></select></label>
     <p class="small" id="base-note" role="status" style="grid-column:1/-1;margin:0"></p>
-    <label class="sortbox" for="pricef">Current bid <select id="pricef"><option value="">Any price</option><option value="50">$50 or less</option><option value="100">$100 or less</option><option value="250">$250 or less</option><option value="500">$500 or less</option><option value="1000">$1,000 or less</option></select></label>
+    <label class="sortbox" for="pricef">Bid <select id="pricef"><option value="">Any price</option><option value="50">$50 or less</option><option value="100">$100 or less</option><option value="250">$250 or less</option><option value="500">$500 or less</option><option value="1000">$1,000 or less</option></select></label>
     <label class="sortbox" for="getf" id="get-wrap">How you get it <select id="getf"><option value="">Any way</option><option value="pickup">Pickup</option><option value="ship">Shipping</option></select></label>
     <details class="elsewhere">
       <summary>Search another area</summary>
@@ -699,10 +699,11 @@ function shots(x){
   var un=!!x.photoUnchecked&&!(x.photos&&x.photos.length);
   return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">'+(un?'First photo from the listing. Nobody has checked it yet. Tap to zoom.':'Tap a photo to zoom and clarify.')+'</p>';
 }
+function bidAsOf(){var d=new Date(BOARD&&BOARD.checked);return isNaN(d)?'at last check':'bid as of '+dayText(d)+', '+timeText(d)}
 function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
   if(!isNaN(c)){var d=new Date(c); when='Closes '+dayText(d)+', '+(x.approx?'about ':'')+timeText(d)+' ET'}
-  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':'at last check')+'</small></div>';
+  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':bidAsOf())+'</small></div>';
   return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+'">'+
     '<div class="top"><h3>'+esc(x.fac)+'</h3>'+price+'</div>'+
     '<div class="meta">'+(x.size?'<span>'+esc(x.size)+'</span>':'')+(when?'<span>'+when+'</span>':'')+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(milesTo(x)!=null?'<span>about '+milesTo(x)+' mi from '+esc(baseShort())+'</span>':'')+(x.seen?'<span>Photos checked '+dayText(new Date(x.seen+'T12:00:00'))+'</span>':'')+'<span>'+esc(x.src)+' #'+esc(x.id)+'</span></div>'+
@@ -741,7 +742,7 @@ function mineHTML(){
   var ord={winning:0,outbid:1,bid:2,watch:3,won:4,lost:5};
   rows.sort(function(a,b){var sa=(prefs.mine[a.x.id]||{}).s||'watch',sb=(prefs.mine[b.x.id]||{}).s||'watch';return ord[sa]-ord[sb]||(closeAt(a.x)||9e15)-(closeAt(b.x)||9e15)});
   return '<div class="list">'+rows.map(function(u){var x=u.x,m=prefs.mine[x.id]||{},s=m.s||'watch',l=leftText(x,now),k=calcFor(x),c=closeAt(x),soon=!isNaN(c)&&c>now&&c-now<864e5;
-    return '<article class="card '+(s==='winning'||s==='won'?'packed':s==='outbid'?'look':'')+'"><div class="top"><h3>'+esc(x.fac)+'</h3>'+(x.bid==null?'':'<div class="bid">$'+esc(x.bid)+'<small>at last check</small></div>')+'</div>'+
+    return '<article class="card '+(s==='winning'||s==='won'?'packed':s==='outbid'?'look':'')+'"><div class="top"><h3>'+esc(x.fac)+'</h3>'+(x.bid==null?'':'<div class="bid">$'+esc(x.bid)+'<small>'+bidAsOf()+'</small></div>')+'</div>'+
       '<div class="meta"><span>'+esc(NAMES[u.t])+'</span><span>'+esc(x.src)+'</span>'+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(soon?'<span class="pill today">Closes within a day</span>':'')+(k.resale&&isFinite(k.maxBid)?'<span>Max bid '+money(k.maxBid)+'</span>':'')+'</div>'+
       (s==='won'&&x.getNote?'<p class="note">Pickup: '+esc(x.getNote)+'</p>':'')+
       '<div class="winform"><label>Status <select data-mst="'+esc(x.id)+'">'+MST.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===s?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label>'+
@@ -857,7 +858,7 @@ function render(){
   var base=units(), all=(tab==='mail')?base:base.filter(okMiles), far=base.length-all.length, checked=new Date(BOARD.checked).getTime();
   var hrs=Math.floor((now-checked)/3600000);
   var age=hrs<1?'less than an hour ago':(hrs<48?hrs+' hour'+(hrs===1?'':'s')+' ago':Math.floor(hrs/24)+' days ago');
-  $('checked-line').textContent=(radius?('Within '+radius+' mi of '+baseShort()):(area||stateName(state)))+'. Last hunt '+dayText(new Date(checked))+', '+timeText(new Date(checked))+' ET ('+age+'). Confirm the bid on the listing before you bid.';
+  $('checked-line').textContent=(radius?('Within '+radius+' mi of '+baseShort()):(area||stateName(state)))+'. Last hunt '+dayText(new Date(checked))+', '+timeText(new Date(checked))+' ET ('+age+'). Bids are not live: they only change when the board is searched again, and often jump near the close. Confirm on the listing before you bid.'+(tab==='storage'?' About 4 in 10 storage auctions are canceled when the tenant pays.':'');
   var everything=[]; TABS.forEach(function(t){everything=everything.concat(units(t))});
   var allClosed=everything.length>0&&everything.every(function(x){return !isOpen(x,now)});
   var stale=$('stale');
@@ -1104,6 +1105,16 @@ function route(){
   render();enter();
 }
 window.addEventListener('hashchange',route);
+/* Phone Back button closes the photo viewer and panels first */
+(function(){var fromPop=false,selfBack=false;
+  var mo=new MutationObserver(function(ms){ms.forEach(function(m){var el=m.target,open=!el.hidden;
+    if(open&&!el._ov){el._ov=1;try{history.pushState({ov:1},'')}catch(e){}}
+    else if(!open&&el._ov){el._ov=0;if(fromPop)fromPop=false;else if(history.state&&history.state.ov){selfBack=true;history.back()}}})});
+  [viewer,panel,minep].forEach(function(e){mo.observe(e,{attributes:true,attributeFilter:['hidden']})});
+  window.addEventListener('popstate',function(){if(selfBack){selfBack=false;return}
+    var top=!viewer.hidden?viewer:!minep.hidden?minep:!panel.hidden?panel:null;if(!top)return;fromPop=true;
+    if(top===viewer)closeViewer();else top.hidden=true});
+})();
 applyPrefs();
 if(prefs.today)filter='today';
 document.querySelectorAll('#chips button').forEach(function(o){o.setAttribute('aria-pressed',o.getAttribute('data-f')===filter?'true':'false')});
