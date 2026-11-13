@@ -330,6 +330,13 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
 .maxrow .small{flex-basis:100%;margin:0}
 .maxrow.over{border-color:#e06666}
 .maxrow.over .small{color:#ff9b9b}
+/* Group 3 (Nov 13): pickup checklist, opening soon */
+.pick{margin-top:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.pick.soon{border-color:var(--warn)}
+.pick p{margin:0 0 6px}
+.wck{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.wck label{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.wck input{width:20px;height:20px;flex:none}
 </style>
 </head>
 <body>
@@ -393,6 +400,7 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
       <button type="button" id="f-look" data-f="look" aria-pressed="false">Worth a look</button>
       <button type="button" id="f-under" data-f="under50" aria-pressed="false">Under $50</button>
       <button type="button" id="f-star" data-f="star" aria-pressed="false">Starred</button>
+      <button type="button" id="f-watch" data-f="watch" aria-pressed="false">Watch list</button>
     </div>
     <p class="rowlabel" id="taglabel">What's inside</p>
     <div class="chips" role="group" aria-label="Filter by what is inside" id="tagchips"></div>
@@ -491,7 +499,7 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
     <div>
       <h3>Wins log</h3>
       <div id="wins"></div>
-      <div class="zrow"><button type="button" class="btn" id="w-copy">Copy log</button></div><p class="small" id="w-out" role="status"></p>
+      <div class="zrow"><button type="button" class="btn" id="w-copy">Copy for Google Sheets</button></div><p class="small" id="w-out" role="status"></p>
       <p class="small">Private to you. Use Copy log to move it to a note or spreadsheet.</p>
     </div>
     <div class="row">
@@ -709,11 +717,11 @@ function shots(x){
   var un=!!x.photoUnchecked&&!(x.photos&&x.photos.length);
   return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">'+(un?'First photo from the listing. Nobody has checked it yet. Tap to zoom.':'Tap a photo to zoom and clarify.')+'</p>';
 }
-function bidAsOf(){var d=new Date(BOARD&&BOARD.checked);return isNaN(d)?'at last check':'bid as of '+dayText(d)+', '+timeText(d)}
+function bidAsOf(x){var d=new Date((x&&x.bidAt)||(BOARD&&BOARD.checked));return isNaN(d)?'at last check':'bid as of '+dayText(d)+', '+timeText(d)}
 function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
   if(!isNaN(c)){var d=new Date(c); when='Closes '+dayText(d)+', '+(x.approx?'about ':'')+timeText(d)+' ET'}
-  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':bidAsOf())+'</small></div>';
+  var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':bidAsOf(x))+'</small></div>';
   var fl=flagsOf(x);
   return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+(overMax(x)?' over':'')+'">'+
     '<div class="top"><h3>'+esc(x.fac)+'</h3>'+price+'</div>'+
@@ -726,7 +734,7 @@ function card(x,now){
     vinRow(x)+
     calcHTML(x)+
     winRow(x)+
-    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(overMax(x)?'<span class="pill red">Past your max</span>':'')+fl.map(function(k){return '<span class="pill red">'+FLAGT[k]+'</span>'}).join('')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
+    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(overMax(x)?'<span class="pill red">Past your max</span>':'')+(x.watch&&x.watch.length?'<span class="pill today">Watch list: '+esc(x.watch.join(', '))+'</span>':'')+fl.map(function(k){return '<span class="pill red">'+FLAGT[k]+'</span>'}).join('')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
       '<button type="button" class="star" data-star="'+esc(x.id)+'" aria-pressed="'+st+'">'+(st?'★ Starred':'☆ Star')+'</button>'+
       (x.addr?'<a class="star" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(x.addr)+'" target="_blank" rel="noopener">Directions</a>':'')+
       (/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open listing</a>':'')+'</span></div>'+
@@ -754,7 +762,7 @@ function mineHTML(){
   var ord={winning:0,outbid:1,bid:2,watch:3,won:4,lost:5};
   rows.sort(function(a,b){var sa=(prefs.mine[a.x.id]||{}).s||'watch',sb=(prefs.mine[b.x.id]||{}).s||'watch';return ord[sa]-ord[sb]||(closeAt(a.x)||9e15)-(closeAt(b.x)||9e15)});
   return '<div class="list">'+rows.map(function(u){var x=u.x,m=prefs.mine[x.id]||{},s=m.s||'watch',l=leftText(x,now),k=calcFor(x),c=closeAt(x),soon=!isNaN(c)&&c>now&&c-now<864e5;
-    return '<article class="card '+(s==='winning'||s==='won'?'packed':s==='outbid'?'look':'')+(overMax(x)&&s!=='won'&&s!=='lost'?' over':'')+'"><div class="top"><h3>'+esc(x.fac)+'</h3>'+(x.bid==null?'':'<div class="bid">$'+esc(x.bid)+'<small>'+bidAsOf()+'</small></div>')+'</div>'+
+    return '<article class="card '+(s==='winning'||s==='won'?'packed':s==='outbid'?'look':'')+(overMax(x)&&s!=='won'&&s!=='lost'?' over':'')+'"><div class="top"><h3>'+esc(x.fac)+'</h3>'+(x.bid==null?'':'<div class="bid">$'+esc(x.bid)+'<small>'+bidAsOf(x)+'</small></div>')+'</div>'+
       '<div class="meta"><span>'+esc(NAMES[u.t])+'</span><span>'+esc(x.src)+'</span>'+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(soon?'<span class="pill today">Closes within a day</span>':'')+(k.resale&&isFinite(k.maxBid)?'<span>Max bid '+money(k.maxBid)+'</span>':'')+'</div>'+
       (s==='won'&&x.getNote?'<p class="note">Pickup: '+esc(x.getNote)+'</p>':'')+
       '<div class="winform"><label>Status <select data-mst="'+esc(x.id)+'">'+MST.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===s?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label>'+
@@ -765,11 +773,18 @@ function acctHTML(){return ACCTS.map(function(a){var on=!!prefs.accts[a[0]];retu
 function drawMine(){$('mine-list').innerHTML=mineHTML();$('acct-list').innerHTML=acctHTML()}
 function vinRow(x){if(!x.vin)return '';var v=esc(x.vin);return '<p class="vinrow"><span>VIN '+v+'</span><button type="button" class="star" data-copyvin="'+v+'">Copy VIN</button><a class="star" href="https://www.nhtsa.gov/recalls?vin='+encodeURIComponent(x.vin)+'" target="_blank" rel="noopener">Recalls (NHTSA)</a><a class="star" href="https://www.nicb.org/vincheck" target="_blank" rel="noopener">Theft and salvage check (NICB)</a></p>'}
 function winOf(id){for(var i=0;i<prefs.wins.length;i++)if(prefs.wins[i].id===id)return prefs.wins[i];return null}
+var WCK=[['pay','Paid the invoice'],['dep','Paid the cleaning deposit'],['lock','Own lock ready to put on after the cut'],['truck','Truck or trailer lined up'],['help','Helpers lined up'],['gear','Dolly, gloves, flashlight, contractor bags, tarp'],['clean','Unit swept out, broom clean'],['photo','Photo of the empty unit for the deposit'],['back','Deposit refund received']];
+function pickupBy(x){var m=/(\d+)\s*(hour|hr|day)/i.exec(x.getNote||''),c=closeAt(x);if(!m||isNaN(c))return null;return c+(+m[1])*(/day/i.test(m[2])?24:1)*3600000}
+function pickupHTML(x,w){var by=pickupBy(x),now=Date.now(),t;
+  if(by==null)t='Pickup deadline: not on file. Check the listing or your win email.';
+  else{var ms=by-now,h=Math.floor(ms/3600000);t=ms<=0?'Pickup deadline passed ('+dayText(new Date(by))+', '+timeText(new Date(by))+' ET). Call the facility now.':'Empty it by '+dayText(new Date(by))+', '+timeText(new Date(by))+' ET, about '+(h>=24?Math.floor(h/24)+'d '+(h%24)+'h':h+'h '+Math.floor(ms%3600000/60000)+'m')+' left. Counted from the listed close; the facility\'s word is final.'}
+  var ck=w.ck||{},done=WCK.filter(function(k){return ck[k[0]]}).length;
+  return '<div class="pick'+(by!=null&&by-now<12*3600000?' soon':'')+'"><p class="small"><b>'+esc(t)+'</b></p>'+(x.getNote?'<p class="small">'+esc(x.getNote)+'</p>':'')+'<p class="small">Pickup checklist: '+done+' of '+WCK.length+' done</p><ul class="wck">'+WCK.map(function(k){return '<li><label><input type="checkbox" data-wck="'+esc(x.id)+'|'+k[0]+'"'+(ck[k[0]]?' checked':'')+'> '+k[1]+'</label></li>'}).join('')+'</ul></div>'}
 function winRow(x){if(x.r==='skip'||x.canceled)return '';var w=winOf(x.id);
-  return '<details class="winbox"'+(w?' open':'')+'><summary>'+(w?'You won this for '+money(w.paid):'I won this')+'</summary><div class="winform"><label>Total you paid, $ <input type="number" inputmode="decimal" min="0" step="1" id="wp-'+esc(x.id)+'" value="'+(w?w.paid:'')+'"></label><label>Sold for so far, $ <input type="number" inputmode="decimal" min="0" step="1" id="ws-'+esc(x.id)+'" value="'+(w&&w.sold?w.sold:'')+'"></label><button type="button" class="btn" data-win="'+esc(x.id)+'">Save</button>'+(w?'<button type="button" class="btn" data-unwin="'+esc(x.id)+'">Remove</button>':'')+'</div></details>'}
+  return '<details class="winbox"'+(w?' open':'')+'><summary>'+(w?'You won this for '+money(w.paid):'I won this')+'</summary><div class="winform"><label>Total you paid, $ <input type="number" inputmode="decimal" min="0" step="1" id="wp-'+esc(x.id)+'" value="'+(w?w.paid:'')+'"></label><label>Sold for so far, $ <input type="number" inputmode="decimal" min="0" step="1" id="ws-'+esc(x.id)+'" value="'+(w&&w.sold?w.sold:'')+'"></label><button type="button" class="btn" data-win="'+esc(x.id)+'">Save</button>'+(w?'<button type="button" class="btn" data-unwin="'+esc(x.id)+'">Remove</button>':'')+'</div>'+(w?pickupHTML(x,w):'')+'</details>'}
 function winsHTML(){var w=prefs.wins;if(!w.length)return '<p class="small">Nothing logged yet. Open "I won this" on any listing to record what you paid.</p>';var tp=0,ts=0;w.forEach(function(x){tp+=x.paid||0;ts+=x.sold||0});
-  return '<ul class="checks">'+w.map(function(x){return '<li><span>'+esc(x.date)+' · '+esc(x.fac)+'</span><span>'+money(x.paid)+' paid'+(x.sold?', '+money(x.sold)+' sold':'')+'</span></li>'}).join('')+'</ul><p class="small" style="margin-top:8px">'+w.length+' won. Paid '+money(tp)+', sold '+money(ts)+', '+(ts-tp>=0?'ahead ':'behind ')+money(Math.abs(ts-tp))+' so far.</p>'}
-function winsText(){return prefs.wins.map(function(x){return [x.date,x.tab,x.fac,'paid '+x.paid,'sold '+(x.sold||0),x.url].join(' | ')}).join('\n')}
+  return '<ul class="checks">'+w.map(function(x){return '<li><span>'+esc(x.date)+' · '+esc(x.fac)+'</span><span>'+money(x.paid)+' paid'+(x.sold?', '+money(x.sold)+' sold, '+(x.sold-x.paid>=0?'ahead ':'behind ')+money(Math.abs(x.sold-x.paid)):'')+'</span></li>'}).join('')+'</ul><p class="small" style="margin-top:8px">'+w.length+' won. Paid '+money(tp)+', sold '+money(ts)+', '+(ts-tp>=0?'ahead ':'behind ')+money(Math.abs(ts-tp))+' so far.</p>'}
+function winsText(){var c=function(v){return String(v==null?'':v).replace(/[\t\n]+/g,' ')};return ['Date\tCategory\tListing\tPaid\tSold so far\tProfit so far\tLink'].concat(prefs.wins.map(function(x){return [x.date,x.tab,x.fac,x.paid,x.sold||0,(x.sold||0)-x.paid,x.url].map(c).join('\t')})).join('\n')}
 function money(v){var n=Math.round(v);return (n<0?'-$':'$')+Math.abs(n).toLocaleString('en-US')}
 function calcFor(x){
   var c=prefs.calc,o=prefs.ov[x.id]||{},f=x.fees||{},r=x.resale||{};
@@ -846,20 +861,25 @@ var BANDS=['5x10 and smaller','about 10x10','about 10x15','about 10x20','10x25 a
 function histAll(){
   if(HIST)return HIST; var seen={},out=[],now=Date.now(),h=(BOARD&&BOARD.storage&&BOARD.storage.history)||[];
   h.forEach(function(e){if(e&&typeof e.bid==='number'&&e.bid>0&&!seen[e.id]){seen[e.id]=1;out.push(e)}});
-  allUnits('storage').forEach(function(x){var c=closeAt(x);if(!x.canceled&&!isNaN(c)&&c<=now&&typeof x.bid==='number'&&x.bid>0&&!seen[x.id]){seen[x.id]=1;out.push({id:x.id,st:stOf(x),area:x.area||BOARD.area,sq:sqftOf(x.size),bid:x.bid,r:x.r})}});
+  allUnits('storage').forEach(function(x){var c=closeAt(x);if(!x.canceled&&!isNaN(c)&&c<=now&&typeof x.bid==='number'&&x.bid>0&&!seen[x.id]){seen[x.id]=1;out.push({id:x.id,src:x.src,st:stOf(x),area:x.area||BOARD.area,sq:sqftOf(x.size),bid:x.bid,r:x.r,fac:x.fac,final:x.final})}});
   return HIST=out}
 function qt(a,p){var i=(a.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return Math.round(a[lo]+(a[hi]-a[lo])*(i-lo))}
 function histLine(x,now){
-  if(tab!=='storage'||!isOpen(x,now))return '';var b=bandOf(sqftOf(x.size));if(b==null)return '';
+  if(tab!=='storage'||!isOpen(x,now))return '';var fl=facLine(x),b=bandOf(sqftOf(x.size));if(b==null)return fl;
   var pool=histAll().filter(function(e){return e.id!==x.id&&bandOf(e.sq)===b&&(e.st||'MI')===stOf(x)}),where=x.area||BOARD.area;
   var a=pool.filter(function(e){return (e.area||BOARD.area)===where});
   if(a.length<3){a=pool;where=stateName(stOf(x))}
-  if(a.length<3)return '';
+  if(a.length<3)return fl;
   var v=a.map(function(e){return e.bid}).sort(function(m,n){return m-n}),mid=qt(v,.5),lo=a.length>=5?qt(v,.25):v[0],hi=a.length>=5?qt(v,.75):v[v.length-1];
   var t='<b>Units like this</b> ('+BANDS[b]+', '+esc(where)+') closed around <b>'+money(mid)+'</b>. '+(a.length>=5?'Middle half ':'Range ')+money(lo)+' to '+money(hi)+', from '+a.length+' units.';
   if(x.r==='packed'){var tp=a.filter(function(e){return e.r==='packed'}).map(function(e){return e.bid}).sort(function(m,n){return m-n});if(tp.length>=3)t+=' Top picks alone: around '+money(qt(tp,.5))+' ('+tp.length+').'}
   if(typeof x.bid==='number'&&x.bid>hi)t+=' This one is already above most of them.';
-  return '<p class="hist">'+t+' These are the last bids the board saw before each close, so real final prices were likely higher.</p>'}
+  var nf=a.filter(function(e){return e.final}).length;
+  return '<p class="hist">'+t+(nf===a.length?' These are final prices read after each close.':' '+(nf?nf+' of these are final prices; the rest are':'These are')+' the last bids the board saw before the close, so real final prices were likely higher.')+'</p>'+fl}
+function facKey(x){return String(x.src||'')+'|'+String(x.fac||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
+function facLine(x){if(!x.fac)return '';var k=facKey(x),a=histAll().filter(function(e){return e.id!==x.id&&e.fac&&facKey(e)===k});if(a.length<2)return '';
+  var v=a.map(function(e){return e.bid}).sort(function(m,n){return m-n});
+  return '<p class="hist"><b>This facility:</b> '+a.length+' earlier units closed around <b>'+money(qt(v,.5))+'</b> (from '+money(v[0])+' to '+money(v[v.length-1])+'). Same caution: mostly last bids seen, not finals.</p>'}
 function myMax(id){var m=prefs.mine[id];return m&&typeof m.mx==='number'?m.mx:null}
 function overMax(x){var mx=myMax(x.id);return mx!=null&&typeof x.bid==='number'&&x.bid>mx}
 function maxRow(x,inMine){
@@ -868,7 +888,7 @@ function maxRow(x,inMine){
   var k=calcFor(x),cb=(k.resale&&isFinite(k.maxBid)&&k.maxBid!==mx)?'<button type="button" class="star" data-mxcalc="'+esc(x.id)+'">Use calculator max '+money(k.maxBid)+'</button>':'';
   var over=overMax(x),msg;
   if(mx==null)msg='Set the most you will pay, then type it on the site as your maximum bid (proxy bid). The site bids for you up to it, so you do not have to watch the close.';
-  else if(over)msg='The bid ('+money(x.bid)+', '+bidAsOf()+') is past your max of '+money(mx)+'. Let it go, or rethink your number before you raise it.';
+  else if(over)msg='The bid ('+money(x.bid)+', '+bidAsOf(x)+') is past your max of '+money(mx)+'. Let it go, or rethink your number before you raise it.';
   else if(typeof x.bid==='number'&&x.bid===mx)msg='The bid is at your max. One more bid from anyone puts it past.';
   else msg=(typeof x.bid==='number'?money(mx-x.bid)+' of room left. ':'')+'Enter '+money(mx)+' on the site as your maximum bid; it bids for you up to there. Bids often jump near the close.';
   return '<div class="maxrow'+(over?' over':'')+'"><label>My max bid, $ <input type="number" inputmode="decimal" min="0" step="1" data-mx="'+esc(x.id)+'" value="'+(mx!=null?mx:'')+'"></label>'+cb+'<p class="small">'+msg+'</p></div>'}
@@ -949,12 +969,13 @@ function render(){
     if(filter==='look')return x.r==='look';
     if(filter==='under50')return x.bid!=null&&x.bid<50;
     if(filter==='star')return starred(x.id);
+    if(filter==='watch')return !!(x.watch&&x.watch.length);
     if(filter==='today')return isToday(x,now)&&isOpen(x,now);
     if(filter==='new')return !!x.isNew;
     return true;
   });
   var shown=tagf?pre.filter(function(x){return (x.tags||[]).indexOf(tagf)>=0}):pre;
-  var msg={star:'No starred listings yet. Tap Star on a listing to keep it here.',alltoday:'No auction on the board closes within 24 hours in this view. Try another area or a wider distance.',today:'No pick on the board closes within 24 hours.',new:'Nothing new was added in the last hunt.'}[filter]||'No listings match this filter.';
+  var msg={watch:'Nothing on the board matches your watch list words right now. Ask Claude in chat to change the words.',star:'No starred listings yet. Tap Star on a listing to keep it here.',alltoday:'No auction on the board closes within 24 hours in this view. Try another area or a wider distance.',today:'No pick on the board closes within 24 hours.',new:'Nothing new was added in the last hunt.'}[filter]||'No listings match this filter.';
   if(tagf&&!shown.length&&filter==='all')msg=TAGMSG[tagf]||('No picks tagged '+TAGS[tagf]+' right now.');
   if(radius&&!shown.length&&filter==='all'&&!tagf)msg='Nothing on the board within '+radius+' miles of '+prefs.base.n+'. Distances are approximate.';
   drawTags(pre);
@@ -969,12 +990,18 @@ function render(){
   $('s-today').textContent=all.filter(function(x){return isToday(x,now)&&isOpen(x,now)}).length;
   $('s-new').textContent=pk.filter(function(x){return x.isNew}).length;
   $('s-top').textContent=pk.filter(function(x){return x.r==='packed'}).length;
-  var c=BOARD[tab], ex='';
+  var c=BOARD[tab], ex=soonHTML(c);
   if(c.findings)ex+='<h2 class="sec">Collectibles and antiques</h2><div class="empty"><p>'+esc(c.findings)+'</p></div>';
   ex+=rulesHTML(c)+upcomingHTML(c);
   ex+=sourcesHTML(c);
   $('extras').innerHTML=ex;
 }
+function soonHTML(c){
+  if(tab!=='storage'||!c.soon||!c.soon.length)return '';var now=Date.now();
+  var a=c.soon.filter(function(x){var o=new Date(x.opens).getTime();return !isNaN(o)&&o>now-864e5&&(radius?okMiles(x):(stOf(x)===state&&(x.area||BOARD.area)===area))}).sort(function(m,n){return new Date(m.opens)-new Date(n.opens)});
+  if(!a.length)return '';
+  return '<h2 class="sec">Opening soon <small>'+a.length+' units, no photos until bidding opens</small></h2><div class="list">'+a.slice(0,40).map(function(x){var o=new Date(x.opens);
+    return '<article class="card"><div class="top"><h3>'+esc(x.fac)+'</h3><div class="ltime">'+dayText(o)+'<br>'+timeText(o)+'</div></div><div class="meta">'+(x.size?'<span>'+esc(x.size)+'</span>':'')+(milesTo(x)!=null?'<span>about '+milesTo(x)+' mi from '+esc(baseShort())+'</span>':'')+'<span>'+esc(x.src||'')+' #'+esc(x.id)+'</span></div>'+(x.words?'<p class="note">The listing says: '+esc(x.words)+'</p>':'')+'<div class="row"><span class="tags"><span class="pill lead">Opens '+dayText(o)+', '+timeText(o)+' ET</span></span><span class="acts">'+(/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open listing</a>':'')+'</span></div></article>'}).join('')+'</div>'}
 function applyPrefs(){
   document.body.className=prefs.big?'bigshots':'';
   document.documentElement.style.setProperty('--drip',FONTS[prefs.font]||FONTS.skinny);
@@ -993,6 +1020,8 @@ $('sort').addEventListener('change',function(){prefs.sort=this.value;save();rend
 document.addEventListener('toggle',function(e){var d=e.target;if(d&&d.getAttribute&&d.getAttribute('data-calc')){if(d.open)openCalc[d.getAttribute('data-calc')]=1;else delete openCalc[d.getAttribute('data-calc')]}},true);
 document.addEventListener('change',function(e){
   var t=e.target;if(!t||!t.getAttribute)return;
+  var wk=t.getAttribute('data-wck');
+  if(wk){var pr=wk.split('|'),wr=winOf(pr[0]);if(!wr)return;if(!wr.ck)wr.ck={};if(t.checked)wr.ck[pr[1]]=1;else delete wr.ck[pr[1]];save();render();return}
   var mxid=t.getAttribute('data-mx');
   if(mxid){var mv=parseFloat(t.value);if(!prefs.mine[mxid])prefs.mine[mxid]={};if(t.value!==''&&isFinite(mv)&&mv>=0)prefs.mine[mxid].mx=Math.round(mv);else delete prefs.mine[mxid].mx;save();render();if(!minep.hidden)drawMine();return}
   var key=t.getAttribute('data-ov');
@@ -1019,7 +1048,7 @@ $('zcopy').addEventListener('click',function(){var z=$('zip').value.trim(),out=$
 document.addEventListener('click',function(e){
   var q=e.target.closest?e.target.closest('[data-copyvin],[data-win],[data-unwin],#w-copy'):null;
   if(q){
-    if(q.id==='w-copy'){var wo=$('w-out'),tx=winsText();try{navigator.clipboard.writeText(tx).then(function(){wo.textContent='Copied.'},function(){wo.textContent=tx})}catch(err){wo.textContent=tx}return}
+    if(q.id==='w-copy'){var wo=$('w-out'),tx=winsText();try{navigator.clipboard.writeText(tx).then(function(){wo.textContent='Copied. Paste it into cell A1 of a Google Sheet; it splits into columns.'},function(){wo.textContent=tx})}catch(err){wo.textContent=tx}return}
     var cv=q.getAttribute('data-copyvin');if(cv){try{navigator.clipboard.writeText(cv).then(function(){q.textContent='Copied'},function(){})}catch(err){}return}
     var un=q.getAttribute('data-unwin');if(un){prefs.wins=prefs.wins.filter(function(x){return x.id!==un});save();render();return}
     var wi=q.getAttribute('data-win'),pv=parseFloat(($('wp-'+wi)||{}).value),sv=parseFloat(($('ws-'+wi)||{}).value);if(!isFinite(pv)||pv<0)return;
