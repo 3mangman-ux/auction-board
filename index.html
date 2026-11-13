@@ -320,6 +320,16 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
 .ltime.none{font:500 13px var(--body);color:var(--muted)}
 .sec small{font:500 13px var(--body);color:var(--muted);margin-left:8px;text-transform:none;letter-spacing:0}
 @media (max-width:440px){nav a{font-size:14px} nav a .n{font-size:9px}}
+/* Group 2 (Nov 13): closing-price history, my max bid, red flags */
+.card.over,.card.over.packed,.card.over.look{border-left-color:#e06666 !important;background:linear-gradient(90deg,rgba(224,102,102,.13),rgba(224,102,102,0) 45%),var(--surface)}
+.hist{margin:8px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--muted);line-height:1.45}
+.hist b{color:var(--ink)}
+.maxrow{margin:8px 0 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.maxrow label{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.maxrow input{width:96px}
+.maxrow .small{flex-basis:100%;margin:0}
+.maxrow.over{border-color:#e06666}
+.maxrow.over .small{color:#ff9b9b}
 </style>
 </head>
 <body>
@@ -704,17 +714,19 @@ function card(x,now){
   var l=leftText(x,now), st=starred(x.id), c=closeAt(x), when='';
   if(!isNaN(c)){var d=new Date(c); when='Closes '+dayText(d)+', '+(x.approx?'about ':'')+timeText(d)+' ET'}
   var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(tab==='pallets'&&saleOf(x)==='fixed'?'asking price':bidAsOf())+'</small></div>';
-  return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+'">'+
+  var fl=flagsOf(x);
+  return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+(overMax(x)?' over':'')+'">'+
     '<div class="top"><h3>'+esc(x.fac)+'</h3>'+price+'</div>'+
     '<div class="meta">'+(x.size?'<span>'+esc(x.size)+'</span>':'')+(when?'<span>'+when+'</span>':'')+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(milesTo(x)!=null?'<span>about '+milesTo(x)+' mi from '+esc(baseShort())+'</span>':'')+(x.seen?'<span>Photos checked '+dayText(new Date(x.seen+'T12:00:00'))+'</span>':'')+'<span>'+esc(x.src)+' #'+esc(x.id)+'</span></div>'+
     getRow(x,true)+
     tagRow(x)+
     shots(x)+
     '<p class="note">'+esc(x.note)+'</p>'+
+    histLine(x,now)+maxRow(x,false)+
     vinRow(x)+
     calcHTML(x)+
     winRow(x)+
-    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
+    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(overMax(x)?'<span class="pill red">Past your max</span>':'')+fl.map(function(k){return '<span class="pill red">'+FLAGT[k]+'</span>'}).join('')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
       '<button type="button" class="star" data-star="'+esc(x.id)+'" aria-pressed="'+st+'">'+(st?'★ Starred':'☆ Star')+'</button>'+
       (x.addr?'<a class="star" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(x.addr)+'" target="_blank" rel="noopener">Directions</a>':'')+
       (/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open listing</a>':'')+'</span></div>'+
@@ -742,11 +754,12 @@ function mineHTML(){
   var ord={winning:0,outbid:1,bid:2,watch:3,won:4,lost:5};
   rows.sort(function(a,b){var sa=(prefs.mine[a.x.id]||{}).s||'watch',sb=(prefs.mine[b.x.id]||{}).s||'watch';return ord[sa]-ord[sb]||(closeAt(a.x)||9e15)-(closeAt(b.x)||9e15)});
   return '<div class="list">'+rows.map(function(u){var x=u.x,m=prefs.mine[x.id]||{},s=m.s||'watch',l=leftText(x,now),k=calcFor(x),c=closeAt(x),soon=!isNaN(c)&&c>now&&c-now<864e5;
-    return '<article class="card '+(s==='winning'||s==='won'?'packed':s==='outbid'?'look':'')+'"><div class="top"><h3>'+esc(x.fac)+'</h3>'+(x.bid==null?'':'<div class="bid">$'+esc(x.bid)+'<small>'+bidAsOf()+'</small></div>')+'</div>'+
+    return '<article class="card '+(s==='winning'||s==='won'?'packed':s==='outbid'?'look':'')+(overMax(x)&&s!=='won'&&s!=='lost'?' over':'')+'"><div class="top"><h3>'+esc(x.fac)+'</h3>'+(x.bid==null?'':'<div class="bid">$'+esc(x.bid)+'<small>'+bidAsOf()+'</small></div>')+'</div>'+
       '<div class="meta"><span>'+esc(NAMES[u.t])+'</span><span>'+esc(x.src)+'</span>'+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(soon?'<span class="pill today">Closes within a day</span>':'')+(k.resale&&isFinite(k.maxBid)?'<span>Max bid '+money(k.maxBid)+'</span>':'')+'</div>'+
       (s==='won'&&x.getNote?'<p class="note">Pickup: '+esc(x.getNote)+'</p>':'')+
       '<div class="winform"><label>Status <select data-mst="'+esc(x.id)+'">'+MST.map(function(o){return '<option value="'+o[0]+'"'+(o[0]===s?' selected':'')+'>'+o[1]+'</option>'}).join('')+'</select></label>'+
       '<label>My bid, $ <input type="number" inputmode="decimal" min="0" step="1" data-mbid="'+esc(x.id)+'" value="'+(m.b!=null?m.b:'')+'"></label></div>'+
+      (s==='won'||s==='lost'||!isOpen(x,now)?'':maxRow(x,true))+
       '<div class="row"><span class="tags"></span><span class="acts"><button type="button" class="star" data-unmine="'+esc(x.id)+'">Remove</button>'+(/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open and bid</a>':'')+'</span></div></article>'}).join('')+'</div>'}
 function acctHTML(){return ACCTS.map(function(a){var on=!!prefs.accts[a[0]];return '<article class="card"><div class="top"><h3>'+esc(a[1])+'</h3></div><p class="srcwhere">'+esc(a[4])+'. Bidding: on their site only.</p><p class="note">'+esc(a[3])+'</p><div class="row"><label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-acct="'+a[0]+'"'+(on?' checked':'')+'> I have an account</label><span class="acts"><a class="star" href="'+(a[6]||a[2])+'" target="_blank" rel="noopener">Sign up</a><a class="open" href="'+(a[5]||a[2])+'" target="_blank" rel="noopener">Sign in on their site</a></span></div></article>'}).join('')}
 function drawMine(){$('mine-list').innerHTML=mineHTML();$('acct-list').innerHTML=acctHTML()}
@@ -826,6 +839,44 @@ function calcPill(x){
   var t={green:['packed','Profitable at this bid'],yellow:['look','Marginal at this bid'],red:['red','Loses money at this bid']}[k.color];
   return '<span class="pill '+t[0]+'">'+t[1]+'</span>'+(k.room?'<span class="pill ok">Low cost, high value</span>':'');
 }
+/* Group 2 (Nov 13): bid tools. history = storage.history (kept by the publish task when it drops closed units) plus closed units still on the board. Bids there are the last ones the board saw, a floor, not the final price. */
+function sqftOf(s){var m=/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/.exec(s||'');return m?Math.round(m[1]*m[2]):null}
+function bandOf(q){return q==null?null:(q<=50?0:q<=100?1:q<=150?2:q<=225?3:4)}
+var BANDS=['5x10 and smaller','about 10x10','about 10x15','about 10x20','10x25 and bigger'], HIST=null;
+function histAll(){
+  if(HIST)return HIST; var seen={},out=[],now=Date.now(),h=(BOARD&&BOARD.storage&&BOARD.storage.history)||[];
+  h.forEach(function(e){if(e&&typeof e.bid==='number'&&e.bid>0&&!seen[e.id]){seen[e.id]=1;out.push(e)}});
+  allUnits('storage').forEach(function(x){var c=closeAt(x);if(!x.canceled&&!isNaN(c)&&c<=now&&typeof x.bid==='number'&&x.bid>0&&!seen[x.id]){seen[x.id]=1;out.push({id:x.id,st:stOf(x),area:x.area||BOARD.area,sq:sqftOf(x.size),bid:x.bid,r:x.r})}});
+  return HIST=out}
+function qt(a,p){var i=(a.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return Math.round(a[lo]+(a[hi]-a[lo])*(i-lo))}
+function histLine(x,now){
+  if(tab!=='storage'||!isOpen(x,now))return '';var b=bandOf(sqftOf(x.size));if(b==null)return '';
+  var pool=histAll().filter(function(e){return e.id!==x.id&&bandOf(e.sq)===b&&(e.st||'MI')===stOf(x)}),where=x.area||BOARD.area;
+  var a=pool.filter(function(e){return (e.area||BOARD.area)===where});
+  if(a.length<3){a=pool;where=stateName(stOf(x))}
+  if(a.length<3)return '';
+  var v=a.map(function(e){return e.bid}).sort(function(m,n){return m-n}),mid=qt(v,.5),lo=a.length>=5?qt(v,.25):v[0],hi=a.length>=5?qt(v,.75):v[v.length-1];
+  var t='<b>Units like this</b> ('+BANDS[b]+', '+esc(where)+') closed around <b>'+money(mid)+'</b>. '+(a.length>=5?'Middle half ':'Range ')+money(lo)+' to '+money(hi)+', from '+a.length+' units.';
+  if(x.r==='packed'){var tp=a.filter(function(e){return e.r==='packed'}).map(function(e){return e.bid}).sort(function(m,n){return m-n});if(tp.length>=3)t+=' Top picks alone: around '+money(qt(tp,.5))+' ('+tp.length+').'}
+  if(typeof x.bid==='number'&&x.bid>hi)t+=' This one is already above most of them.';
+  return '<p class="hist">'+t+' These are the last bids the board saw before each close, so real final prices were likely higher.</p>'}
+function myMax(id){var m=prefs.mine[id];return m&&typeof m.mx==='number'?m.mx:null}
+function overMax(x){var mx=myMax(x.id);return mx!=null&&typeof x.bid==='number'&&x.bid>mx}
+function maxRow(x,inMine){
+  if(x.canceled||(tab==='pallets'&&!inMine&&saleOf(x)==='fixed')||x.closes==null)return '';
+  var mx=myMax(x.id);if(!inMine&&!starred(x.id)&&mx==null)return '';
+  var k=calcFor(x),cb=(k.resale&&isFinite(k.maxBid)&&k.maxBid!==mx)?'<button type="button" class="star" data-mxcalc="'+esc(x.id)+'">Use calculator max '+money(k.maxBid)+'</button>':'';
+  var over=overMax(x),msg;
+  if(mx==null)msg='Set the most you will pay, then type it on the site as your maximum bid (proxy bid). The site bids for you up to it, so you do not have to watch the close.';
+  else if(over)msg='The bid ('+money(x.bid)+', '+bidAsOf()+') is past your max of '+money(mx)+'. Let it go, or rethink your number before you raise it.';
+  else if(typeof x.bid==='number'&&x.bid===mx)msg='The bid is at your max. One more bid from anyone puts it past.';
+  else msg=(typeof x.bid==='number'?money(mx-x.bid)+' of room left. ':'')+'Enter '+money(mx)+' on the site as your maximum bid; it bids for you up to there. Bids often jump near the close.';
+  return '<div class="maxrow'+(over?' over':'')+'"><label>My max bid, $ <input type="number" inputmode="decimal" min="0" step="1" data-mx="'+esc(x.id)+'" value="'+(mx!=null?mx:'')+'"></label>'+cb+'<p class="small">'+msg+'</p></div>'}
+var FLAGT={dooronly:'Photos from the door only',onephoto:'Only 1 photo',mgrspecial:'Manager special'};
+function flagsOf(x){var f=(x.flags||[]).filter(function(k){return FLAGT[k]});
+  if(x.photoCount===1&&f.indexOf('onephoto')<0)f.push('onephoto');
+  if(f.indexOf('mgrspecial')<0&&/manager'?s?\s+special/i.test((x.note||'')+' '+(x.fac||'')+' '+(x.size||'')))f.push('mgrspecial');
+  return f}
 function sorter(){
   var rk=function(x){return x.rank==null?9999:x.rank};
   if(prefs.sort==='profit')return function(a,b){var ka=calcFor(a),kb=calcFor(b),pa=ka.resale?ka.profit:-Infinity,pb=kb.resale?kb.profit:-Infinity;return (pb-pa)||rk(a)-rk(b)};
@@ -841,7 +892,7 @@ function setFilter(f){
   render();enter();
 }
 function render(){
-  var now=Date.now();
+  var now=Date.now(); HIST=null;
   TABS.forEach(function(t){
     var n=units(t).length, ns=BOARD&&BOARD[t]&&BOARD[t].sources?BOARD[t].sources.length:0;
     $('n-'+t).textContent=loadError?'not loaded':(BOARD?(n?n+' listed':(ns?ns+(ns===1?' place':' places'):'none yet')):' ');
@@ -942,6 +993,8 @@ $('sort').addEventListener('change',function(){prefs.sort=this.value;save();rend
 document.addEventListener('toggle',function(e){var d=e.target;if(d&&d.getAttribute&&d.getAttribute('data-calc')){if(d.open)openCalc[d.getAttribute('data-calc')]=1;else delete openCalc[d.getAttribute('data-calc')]}},true);
 document.addEventListener('change',function(e){
   var t=e.target;if(!t||!t.getAttribute)return;
+  var mxid=t.getAttribute('data-mx');
+  if(mxid){var mv=parseFloat(t.value);if(!prefs.mine[mxid])prefs.mine[mxid]={};if(t.value!==''&&isFinite(mv)&&mv>=0)prefs.mine[mxid].mx=Math.round(mv);else delete prefs.mine[mxid].mx;save();render();if(!minep.hidden)drawMine();return}
   var key=t.getAttribute('data-ov');
   if(key){var id=t.getAttribute('data-id'),v=parseFloat(t.value);if(!prefs.ov[id])prefs.ov[id]={};
     if(t.value===''||!isFinite(v)||v<0)delete prefs.ov[id][key];else prefs.ov[id][key]=v;
@@ -973,6 +1026,8 @@ document.addEventListener('click',function(e){
     var ux=null;TABS.forEach(function(t){allUnits(t).forEach(function(x){if(x.id===wi)ux={x:x,t:t}})});if(!ux)return;
     var ex=winOf(wi),rec={id:wi,tab:ux.t,fac:ux.x.fac,url:ux.x.url||'',paid:pv,sold:isFinite(sv)&&sv>0?sv:0,date:ex?ex.date:new Date().toISOString().slice(0,10)};
     prefs.wins=prefs.wins.filter(function(x){return x.id!==wi}).concat([rec]);save();render();return}
+  var mc=e.target.closest?e.target.closest('[data-mxcalc]'):null;
+  if(mc){var mi=mc.getAttribute('data-mxcalc'),fu=findUnit(mi);if(!fu)return;var kk=calcFor(fu.x);if(!kk.resale||!isFinite(kk.maxBid))return;if(!prefs.mine[mi])prefs.mine[mi]={};prefs.mine[mi].mx=kk.maxBid;save();render();if(!minep.hidden)drawMine();return}
   var t=e.target.closest?e.target.closest('[data-star]'):null;
   if(t){var id=t.getAttribute('data-star'),i=prefs.stars.indexOf(id); if(i>=0)prefs.stars.splice(i,1);else prefs.stars.push(id); save();render();return;}
   var um=e.target.closest?e.target.closest('[data-unmine]'):null;
