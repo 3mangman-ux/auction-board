@@ -337,151 +337,64 @@ body[data-tab="live"] #area-wrap,body[data-tab="live"] label[for="state"],body[d
 .wck{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .wck label{display:flex;gap:8px;align-items:flex-start;font-size:14px}
 .wck input{width:20px;height:20px;flex:none}
-/* ===== Nov 15: "auction floor" look. Near-black, charcoal cards, crisp white type, electric cyan accent; amber = ending soon, green = winning or won.
-   Glow only on the main action (Open listing), bidding-open dots and keyboard focus. Photos lead each card. Replaces the Nov 10 tokens above. ===== */
-:root{--bg:#06080c;--surface:#11151c;--raise:#181d26;--ink:#f5f8fc;--muted:#8d99ab;--line:#222a36;--line2:rgba(34,211,238,.28);
-  --cyan:#22d3ee;--pink:#22d3ee;--accent-ink:#031417;--glow:0 0 0 1px rgba(34,211,238,.55),0 0 18px rgba(34,211,238,.35);
-  --good:#22c55e;--good-bg:rgba(34,197,94,.14);--warn:#f5a524;--warn-bg:rgba(245,165,36,.15);--skip:#7c8798;--skip-bg:rgba(124,135,152,.15);
-  --display:"Space Grotesk","Inter","Segoe UI",sans-serif;--body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--num:"Space Grotesk","Inter",sans-serif;
-  --r:12px;--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px}
-body[data-tab="cars"],body[data-tab="pallets"],body[data-tab="mail"],body[data-tab="live"]{--cyan:#22d3ee}
-body{font-family:var(--body);letter-spacing:-.005em;
-  background:
-    radial-gradient(1200px 520px at 50% -180px,rgba(34,211,238,.10),transparent 70%),
-    linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px) 0 0/32px 32px,
-    linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px) 0 0/32px 32px,
-    repeating-linear-gradient(180deg,rgba(205,214,230,.05) 0 2px,transparent 2px 27px,rgba(0,0,0,.35) 27px 32px),
-    var(--bg);background-attachment:fixed}
-.logo span{color:rgba(230,240,250,.045)}
-.wrap{max-width:1240px;padding:0 20px 64px}
-/* compact header */
-header{padding:16px 0 8px;align-items:center}
-h1{color:var(--ink);font-size:34px;line-height:1}
-h1 .who{font-size:.62em;color:var(--cyan);letter-spacing:.06em}
-.sub{margin-top:6px;font-size:12px;font-variant-numeric:tabular-nums}
-.bulbs{height:10px;margin-top:4px;opacity:.55;filter:none}
-.btn{font:600 14px var(--body);background:var(--raise);border:1px solid var(--line);border-radius:10px;padding:8px 14px;transition:border-color .2s,background .2s}
-.btn:hover{border-color:var(--line2)}
-/* tabs */
-nav{background:rgba(6,8,12,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:0 -20px;padding:10px 20px}
-nav a{font:600 16px var(--display);border-radius:10px;background:var(--surface);border:1px solid var(--line);color:var(--muted);transition:color .2s,border-color .2s,background .2s}
-nav a:hover{color:var(--ink)}
-nav a[aria-current="page"]{color:var(--ink);background:linear-gradient(180deg,rgba(34,211,238,.14),rgba(34,211,238,.03));border-color:var(--line2)}
-nav a .n{font:500 11px var(--body);font-variant-numeric:tabular-nums}
-/* focus: easy to see everywhere */
-a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;box-shadow:0 0 0 5px rgba(34,211,238,.22) !important}
-/* filters */
-.areabar{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:var(--s3)}
-select,.zrow input,.cin input,.setgrid input,.winform input,.winform select{background:var(--raise);border:1px solid var(--line);border-radius:8px;color:var(--ink)}
-.sortbox{color:var(--muted)}
-.summary{gap:var(--s2)}
-.stat{background:var(--surface) !important;border:1px solid var(--line);border-radius:var(--r);transition:border-color .2s,transform .2s}
-.stat:hover{border-color:var(--line2)}
-.stat b{font-family:var(--num);font-weight:700;font-size:32px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-#t-today b{color:var(--warn)} #t-new b{color:var(--cyan)} #t-top b{color:var(--ink)}
-.chips button{background:var(--surface);border:1px solid var(--line);border-radius:999px;font:600 13px var(--body);transition:border-color .2s,background .2s}
-.chips button:hover{border-color:var(--line2)}
-.chips button[aria-pressed="true"],#tagchips button[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--accent-ink)}
-.rowlabel{color:var(--muted)}
-/* listing grid: photos first */
-main .list{gap:var(--s4)}
-@media (min-width:760px){ main #picks,main #skips,main #extras .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));align-items:start} }
-.card{background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0) 120px),var(--surface);border:1px solid var(--line);border-left:1px solid var(--line);border-radius:14px;padding:0 0 var(--s3);gap:10px;overflow:hidden;position:relative;transition:transform .2s ease,border-color .2s,box-shadow .2s}
-.card>*:not(.mwrap){margin-left:var(--s3);margin-right:var(--s3)}
-.card>.top:first-child{margin-top:var(--s3)}
-.card:hover{border-color:var(--line2);box-shadow:0 10px 30px -14px rgba(0,0,0,.9),0 0 0 1px rgba(34,211,238,.12)}
-.card.packed{border-top:2px solid var(--cyan)}
-.card.look,.card.listed,.card.skip{border-left-color:var(--line)}
-.card.over,.card.over.packed,.card.over.look{border-left:1px solid #e06666 !important;border-color:rgba(224,102,102,.6)}
-.card.closed{opacity:.55}
-.card.src-ok,.card.src-check,.card.src-broker{border-left:3px solid var(--line)} .card.src-ok{border-left-color:var(--good)} .card.src-check,.card.src-broker{border-left-color:var(--warn)}
-.mwrap{position:relative}
-.media{position:relative;background:#030405;aspect-ratio:4/3;overflow:hidden}
-.shot{border:0;border-radius:0;background:#030405}
-.shot.hero{display:block;width:100%;height:100%}
-.shot.hero img{width:100%;height:100%;object-fit:cover;min-width:0;transition:transform .35s ease}
-body.bigshots .media{aspect-ratio:1/1}
-.pcount{position:absolute;right:10px;bottom:10px;font:600 12px var(--body);background:rgba(6,8,12,.78);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 9px;pointer-events:none}
-.mwrap .shots{gap:4px;padding:4px 4px 0}
-.mwrap .shot:not(.hero){border:1px solid var(--line);border-radius:6px}
-.mwrap .shot:not(.hero) img{height:64px;width:auto;min-width:64px}
-body.bigshots .mwrap .shot:not(.hero) img{height:90px}
-.mwrap .hint{margin:6px var(--s3) 0}
-.mwrap .nophoto{margin:var(--s3) var(--s3) 0}
-.lchip{position:absolute;left:10px;top:10px;font:700 11px var(--body);letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(6,8,12,.8);border:1px solid rgba(255,255,255,.14);display:inline-flex;align-items:center;gap:6px;pointer-events:none}
-.mwrap .nophoto~.lchip,.mwrap>.lchip:first-child{position:static;margin:var(--s3) var(--s3) 0;width:max-content}
-.lchip i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
-.lchip.on{color:var(--cyan);border-color:rgba(34,211,238,.45)}
-.lchip.soon{color:var(--warn);border-color:rgba(245,165,36,.5)}
-.lchip.sale{color:var(--ink)} .lchip.off{color:var(--muted)}
-/* price and countdown: big, steady digits */
-.pricebar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-top:2px}
-.bid,.clock b{font-family:var(--num);font-weight:700;font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.02em;line-height:1}
-.bid{font-size:34px;color:var(--ink);text-align:left}
-.bid.none{font-size:20px;color:var(--muted)}
-.bid small,.clock small{display:block;font:500 11px var(--body);color:var(--muted);letter-spacing:.02em;margin-top:5px;text-transform:none}
-.clock{text-align:right}
-.clock b{font-size:24px;color:var(--ink)}
-.clock.soon b{color:var(--warn)}
-.clock.closed b{color:var(--muted)}
-.card h3{font:600 17px/1.25 var(--display);color:var(--ink)}
-.meta{font-size:13px;gap:4px 10px}
-.meta .sz{font:600 12px var(--body);color:var(--ink);background:var(--raise);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
-.note{font-size:14px;color:#c9d1dc}
-.tagc{border-color:var(--line);color:var(--muted)} .tagc.hot{color:var(--cyan);background:rgba(34,211,238,.1);border-color:transparent}
-.pill{border-radius:6px}
-.pill.packed{background:rgba(34,211,238,.13);color:var(--cyan)}
-.pill.look{background:rgba(255,255,255,.07);color:var(--ink)}
-.pill.watch{background:rgba(34,211,238,.13);color:var(--cyan)}
-.pill.new{background:rgba(34,211,238,.10);color:#9becf7}
-.pill.today{background:var(--warn-bg);color:var(--warn)}
-.calc,.hist,.maxrow,.pick{border-color:var(--line);border-radius:10px;background:rgba(0,0,0,.25)}
-.row{border-top:1px solid var(--line);padding-top:var(--s3);margin-top:2px}
-.star{border-radius:10px;border:1px solid var(--line);background:var(--raise)}
-.star:hover{border-color:var(--line2)}
-.star[aria-pressed="true"]{color:var(--warn);border-color:rgba(245,165,36,.6)}
-/* the primary action carries the glow */
-.open{font:700 14px var(--body);background:var(--cyan) !important;color:var(--accent-ink);border-radius:10px;padding:8px 18px;box-shadow:var(--glow) !important;transition:transform .15s,box-shadow .2s,filter .2s}
-.open:hover{filter:brightness(1.1);box-shadow:0 0 0 1px rgba(34,211,238,.8),0 0 26px rgba(34,211,238,.55) !important}
-.acts{margin-left:auto}
-.ltime{font:700 20px var(--num);font-variant-numeric:tabular-nums;color:var(--cyan)}
-h2.sec{font-family:var(--display);color:var(--ink)}
-summary{font-family:var(--display)}
-.empty{border-radius:var(--r);background:var(--surface)}
-/* won / winning read green */
-.crows li.tot.green span:last-child,.cdot.green{color:var(--good)}
-/* photo viewer: gallery gets the room, bid and action in one bar */
-#viewer{background:#030405}
-.vbar{border-bottom:1px solid var(--line)}
-.vctl{background:rgba(10,12,16,.96);border-top:1px solid var(--line2)}
-.vbid{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between}
-.vbid:empty{display:none}
-.vbid .bid{font-size:28px} .vbid .clock{margin-left:auto} .vbid .clock b{font-size:22px}
-.vbid .open{min-height:44px}
-@media (max-width:600px){ .vbid .open{flex-basis:100%;justify-content:center} }
-.sheet{background:#0a0d12;border-left:1px solid var(--line2)}
-/* restrained motion */
-@media (prefers-reduced-motion: no-preference){
-  .card:hover{transform:translateY(-3px)}
-  .card:hover .shot.hero img{transform:scale(1.03)}
-  .lchip.on i,.lchip.soon i{animation:livepulse 1.8s ease-in-out infinite}
-  @keyframes livepulse{50%{opacity:.35;box-shadow:0 0 2px currentColor}}
-  .open:active,.star:active,.btn:active{transform:scale(.97)}
+/* ===== Nov 15: look only (owner's request). Same layout, cards and features as before; only colors, background, glow and type change.
+   Navy-black with a faint grid over the storage door, glass cards with thin lit edges, neon tab colors, cyan accent,
+   amber = closing soon, green = good, purple = new and starred. Glow only on the active tab, the Open listing button and live dots. ===== */
+:root{--bg:#04060d;--surface:rgba(12,18,36,.82);--raise:#141c33;--ink:#f3f7fd;--muted:#93a1b8;--line:rgba(99,179,255,.2);
+  --cyan:#22d3ee;--pink:#22d3ee;--accent-ink:#03141a;
+  --good:#22c55e;--good-bg:rgba(34,197,94,.14);--warn:#f5a524;--warn-bg:rgba(245,165,36,.15);--skip:#8390a6;--skip-bg:rgba(131,144,166,.15);
+  --display:"Space Grotesk","Rubik","Segoe UI",sans-serif;--body:"Inter","Rubik",system-ui,-apple-system,"Segoe UI",sans-serif}
+body[data-tab="cars"]{--cyan:#fb923c} body[data-tab="pallets"]{--cyan:#34d399} body[data-tab="mail"]{--cyan:#f472b6} body[data-tab="live"]{--cyan:#a78bfa}
+body{background:
+  radial-gradient(900px 480px at 10% -8%,rgba(59,130,246,.16),transparent 70%),
+  radial-gradient(800px 480px at 100% 0%,rgba(168,85,247,.11),transparent 70%),
+  linear-gradient(rgba(120,170,255,.045) 1px,transparent 1px) 0 0/36px 36px,
+  linear-gradient(90deg,rgba(120,170,255,.045) 1px,transparent 1px) 0 0/36px 36px,
+  repeating-linear-gradient(180deg,rgba(190,210,240,.05) 0 2px,transparent 2px 27px,rgba(0,0,0,.35) 27px 32px),
+  linear-gradient(180deg,#070b1a,var(--bg) 70%);background-attachment:fixed}
+.logo span{color:rgba(125,211,252,.06)}
+h1{color:var(--ink);text-shadow:0 0 22px rgba(34,211,238,.28)}
+h1 .who{color:#22d3ee}
+.led{height:1px;background:linear-gradient(90deg,transparent,#22d3ee,#a855f7,transparent);opacity:.8}
+.bulbs{filter:drop-shadow(0 0 4px rgba(255,255,255,.45))}
+/* tabs: neon color per category, glow on the open one */
+nav{background:rgba(4,6,13,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav a{background:rgba(12,18,36,.8);border-color:var(--line)}
+nav a[data-tab="storage"]{border-bottom:3px solid #22d3ee} nav a[data-tab="cars"]{border-bottom:3px solid #fb923c}
+nav a[data-tab="pallets"]{border-bottom:3px solid #34d399} nav a[data-tab="mail"]{border-bottom:3px solid #f472b6} nav a[data-tab="live"]{border-bottom:3px solid #a78bfa}
+nav a[aria-current="page"]{color:#fff;border-color:var(--cyan);background:linear-gradient(180deg,color-mix(in srgb,var(--cyan) 22%,transparent),color-mix(in srgb,var(--cyan) 5%,transparent));box-shadow:0 0 0 1px color-mix(in srgb,var(--cyan) 40%,transparent),0 0 20px color-mix(in srgb,var(--cyan) 38%,transparent) !important}
+/* glass panels with thin lit edges */
+.card,.stat,.empty,.calc,.hist,.maxrow,.pick,table{border-color:var(--line)}
+.card{background:linear-gradient(180deg,rgba(30,42,78,.32),rgba(12,18,36,0) 120px),rgba(10,15,30,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.card.packed{border-left-color:var(--good)} .card.look{border-left-color:var(--warn)} .card.listed{border-left-color:var(--cyan)} .card.skip{border-left-color:var(--skip)}
+.stat{background:rgba(10,15,30,.85)}
+#t-today{border-color:rgba(245,165,36,.45)} #t-new{border-color:rgba(168,85,247,.45)} #t-top{border-color:rgba(34,197,94,.45)}
+#t-today b{color:var(--warn)} #t-new b{color:#c084fc} #t-top b{color:var(--good)}
+.stat b,.bid,.ltime,.crows li span:last-child,#vzoom{font-variant-numeric:tabular-nums}
+.bid{color:#fff}
+.calc{background:rgba(4,6,13,.6)}
+select,.zrow input,.cin input,.setgrid input,.winform input,.winform select,.btn,.star,.chips button{background:rgba(14,21,40,.9);border-color:var(--line)}
+.chips button[aria-pressed="true"],#tagchips button[aria-pressed="true"],.vbtn[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:var(--accent-ink)}
+.pill.new{background:rgba(168,85,247,.16);color:#d8b4fe}
+.pill.lead{background:rgba(34,211,238,.12);color:#a5f3fc}
+.tagc.hot{color:var(--cyan);background:color-mix(in srgb,var(--cyan) 12%,transparent)}
+.star[aria-pressed="true"]{color:#c084fc;border-color:rgba(168,85,247,.6)}
+h2.sec,.sheet h3{color:var(--ink)}
+.sheet{background:#060914;border-left:1px solid var(--line)}
+#viewer{background:#03050a} .vctl{background:#060914}
+/* the main action and live dots carry the glow */
+.open{background:var(--cyan);color:var(--accent-ink);box-shadow:0 0 0 1px color-mix(in srgb,var(--cyan) 60%,transparent),0 0 16px color-mix(in srgb,var(--cyan) 45%,transparent) !important}
+.left.soon::before{box-shadow:0 0 8px var(--warn)}
+.btn.dot::after{box-shadow:0 0 8px var(--warn) !important}
+a:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #22d3ee;outline-offset:2px;box-shadow:0 0 0 5px rgba(34,211,238,.22) !important}
+@media (hover:hover){
+  .card:hover{border-color:color-mix(in srgb,var(--cyan) 55%,transparent);box-shadow:0 0 22px -8px color-mix(in srgb,var(--cyan) 60%,transparent) !important}
+  .btn:hover,.star:hover,.chips button:hover,nav a:hover{border-color:color-mix(in srgb,var(--cyan) 50%,transparent)}
+  .open:hover{filter:brightness(1.1)}
 }
-@media (max-width:440px){ .wrap{padding:0 14px 56px} nav{margin:0 -14px;padding:8px 14px} h1{font-size:30px} .bid{font-size:30px} .clock b{font-size:21px} .stat b{font-size:26px} .areabar{padding:10px} }
-.ftoggle{display:none}
-@media (max-width:600px){
-  header{flex-direction:column;align-items:stretch;gap:10px}
-  h1 .who{display:inline;font-size:.62em;margin-right:8px}
-  h1{font-size:28px !important}
-  .sub{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .hbtns{justify-content:flex-start;flex-wrap:nowrap}
-  .hbtns .btn{flex:1;padding:8px 6px}
-  .ftoggle{display:flex;width:100%;justify-content:space-between;align-items:center;margin-bottom:10px;border-radius:var(--r)}
-  .ftoggle::after{content:"Show";color:var(--cyan);font-size:13px}
-  .ftoggle[aria-expanded="true"]::after{content:"Hide"}
-  .areabar{display:none}
-  .areabar.show{display:grid}
+@media (prefers-reduced-motion: no-preference){
+  .card{transition:transform .2s,border-color .2s,box-shadow .2s}
+  @media (hover:hover){.card:hover{transform:translateY(-2px)}}
 }
 </style>
 </head>
@@ -511,8 +424,7 @@ summary{font-family:var(--display)}
 
 <main>
   <div class="stale" id="stale" hidden></div>
-  <button type="button" class="btn ftoggle" id="ftoggle" aria-expanded="false" aria-controls="areabar">Location and price filters</button>
-  <div class="areabar" id="areabar">
+  <div class="areabar">
     <label class="sortbox" for="state">State <select id="state"></select></label>
     <label class="sortbox" for="area" id="area-wrap">Area <select id="area"></select></label>
     <label class="sortbox" for="base" id="base-wrap">Measure distance from <select id="base"></select></label>
@@ -580,7 +492,6 @@ summary{font-family:var(--display)}
   </div>
   <div id="vstage"><img id="vimg" alt="Enlarged photo" draggable="false" referrerpolicy="no-referrer"></div>
   <div class="vctl">
-    <div class="vbid" id="vbid"></div>
     <div class="vrow">
       <button type="button" class="vbtn" id="v-prev" aria-label="Previous photo">Prev</button>
       <button type="button" class="vbtn" id="v-out" aria-label="Zoom out">-</button>
@@ -863,18 +774,7 @@ function shots(x){
   var p=pics(x);
   if(!p.length)return (x.r==='skip'||x.unchecked)?'':'<p class="nophoto">Photos for this listing are on its page. Use Open listing.</p>';
   var un=!!x.photoUnchecked&&!(x.photos&&x.photos.length);
-  var b=function(src,i,cls){return '<button type="button" class="shot'+cls+'" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'};
-  return '<div class="media">'+b(p[0],0,' hero')+(p.length>1?'<span class="pcount">'+p.length+' photos</span>':'')+'</div>'+
-    (p.length>1?'<div class="shots">'+p.slice(1).map(function(src,i){return b(src,i+1,'')}).join('')+'</div>':'')+
-    '<p class="hint">'+(un?'First photo from the listing. Nobody has checked it yet. Tap to zoom.':'Tap a photo to zoom and clarify.')+'</p>';
-}
-/* live state chip shown on the main photo: bidding open, ending soon, for sale */
-function liveChip(x,l,now){
-  if(l.c==='closed')return '<span class="lchip off">'+esc(l.t)+'</span>';
-  if(isFixed(x))return '<span class="lchip sale">For sale</span>';
-  if(l.c==='soon')return '<span class="lchip soon"><i></i>Ending soon</span>';
-  if(l.t)return '<span class="lchip on"><i></i>Bidding open</span>';
-  return '';
+  return '<div class="shots">'+p.map(function(src,i){return '<button type="button" class="shot" data-id="'+esc(x.id)+'" data-i="'+i+'" aria-label="Open photo '+(i+1)+' of '+p.length+' in the viewer"><img src="'+esc(src)+'" alt="Photo '+(i+1)+'" loading="lazy" height="210" referrerpolicy="no-referrer" onerror="this.parentNode.style.display=\'none\'"></button>'}).join('')+'</div><p class="hint">'+(un?'First photo from the listing. Nobody has checked it yet. Tap to zoom.':'Tap a photo to zoom and clarify.')+'</p>';
 }
 function isFixed(x){return (tab==='pallets'||tab==='mail')&&saleOf(x)==='fixed'}
 function bidAsOf(x){var d=new Date((x&&x.bidAt)||(BOARD&&BOARD.checked));return isNaN(d)?'at last check':'bid as of '+dayText(d)+', '+timeText(d)}
@@ -884,18 +784,17 @@ function card(x,now){
   var price=(x.bid==null)?'':'<div class="bid">$'+esc(x.bid)+'<small>'+(isFixed(x)?(/ to \$/.test(x.size||'')?'lowest price listed':'asking price'):bidAsOf(x))+'</small></div>';
   var fl=flagsOf(x);
   return '<article class="card '+esc(x.r||'')+(l.c==='closed'?' closed':'')+(overMax(x)?' over':'')+'">'+
-    '<div class="mwrap">'+shots(x)+liveChip(x,l,now)+'</div>'+
-    '<div class="pricebar">'+(price||'<div class="bid none">No price<small>see listing</small></div>')+(l.t?'<div class="clock '+l.c+'"><b>'+esc(l.t.replace(/ left$/,''))+'</b><small>'+(l.c==='closed'?'auction over':'time left')+'</small></div>':'')+'</div>'+
-    '<div class="top"><h3>'+esc(x.fac)+'</h3></div>'+
-    '<div class="meta">'+(x.size?'<span class="sz">'+esc(x.size)+'</span>':'')+(when?'<span>'+when+'</span>':'')+(milesTo(x)!=null?'<span>about '+milesTo(x)+' mi from '+esc(baseShort())+'</span>':'')+(x.seen?'<span>Photos checked '+dayText(new Date(x.seen+'T12:00:00'))+'</span>':'')+'<span>'+esc(x.src)+' #'+esc(x.id)+'</span></div>'+
+    '<div class="top"><h3>'+esc(x.fac)+'</h3>'+price+'</div>'+
+    '<div class="meta">'+(x.size?'<span>'+esc(x.size)+'</span>':'')+(when?'<span>'+when+'</span>':'')+(l.t?'<span class="left '+l.c+'">'+l.t+'</span>':'')+(milesTo(x)!=null?'<span>about '+milesTo(x)+' mi from '+esc(baseShort())+'</span>':'')+(x.seen?'<span>Photos checked '+dayText(new Date(x.seen+'T12:00:00'))+'</span>':'')+'<span>'+esc(x.src)+' #'+esc(x.id)+'</span></div>'+
     getRow(x,true)+
     tagRow(x)+
+    shots(x)+
     '<p class="note">'+esc(x.note)+'</p>'+
     histLine(x,now)+unitCost(x)+dupLine(x,now)+maxRow(x,false)+
     vinRow(x)+
     calcHTML(x)+
     winRow(x)+
-    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(overMax(x)?'<span class="pill red">Past your max</span>':'')+(x.watch&&x.watch.length?'<span class="pill watch">Watch list: '+esc(x.watch.join(', '))+'</span>':'')+fl.map(function(k){return '<span class="pill red">'+FLAGT[k]+'</span>'}).join('')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
+    '<div class="row"><span class="tags">'+calcPill(x)+(LABEL[x.r]?'<span class="pill '+x.r+'">'+LABEL[x.r]+'</span>':'')+(x.isNew?'<span class="pill new">New</span>':'')+(x.unchecked?'<span class="pill lead">Not checked yet</span>':'')+(x.canceled?'<span class="pill red">Canceled by the seller</span>':'')+(overMax(x)?'<span class="pill red">Past your max</span>':'')+(x.watch&&x.watch.length?'<span class="pill today">Watch list: '+esc(x.watch.join(', '))+'</span>':'')+fl.map(function(k){return '<span class="pill red">'+FLAGT[k]+'</span>'}).join('')+(x.inspect==='none'?'<span class="pill lead">No inspection, photos only</span>':'')+(x.lead?'<span class="pill lead">Lead, photos not checked</span>':'')+(isToday(x,now)&&l.c!=='closed'?'<span class="pill today">Within 24 hours</span>':'')+'</span><span class="acts">'+
       '<button type="button" class="star" data-star="'+esc(x.id)+'" aria-pressed="'+st+'">'+(st?'★ Starred':'☆ Star')+'</button>'+
       (x.addr?'<a class="star" href="https://www.google.com/maps/dir/?api=1&amp;destination='+encodeURIComponent(x.addr)+'" target="_blank" rel="noopener">Directions</a>':'')+
       (/^https:\/\//.test(x.url||'')?'<a class="open" href="'+esc(x.url)+'" target="_blank" rel="noopener">Open listing</a>':'')+'</span></div>'+
@@ -1265,8 +1164,6 @@ function show(){
   var p=pics(V.u);
   vimg.src=p[V.i]; V.s=1;V.x=0;V.y=0;
   $('vtitle').textContent=(V.u?String(V.u.fac).split(',')[0]:'Listing')+' · photo '+(V.i+1)+' of '+p.length;
-  var u=V.u,l=leftText(u,Date.now());
-  $('vbid').innerHTML=(u.bid!=null?'<div class="bid">$'+esc(u.bid)+'<small>'+(isFixed(u)?'asking price':bidAsOf(u))+'</small></div>':'')+(l.t?'<div class="clock '+l.c+'"><b>'+esc(l.t.replace(/ left$/,''))+'</b><small>'+(l.c==='closed'?'auction over':'time left')+'</small></div>':'')+(/^https:\/\//.test(u.url||'')?'<a class="open" href="'+esc(u.url)+'" target="_blank" rel="noopener">Open listing to bid</a>':'');
   $('v-prev').disabled=V.i<=0; $('v-next').disabled=V.i>=p.length-1;
   paint();
 }
@@ -1384,7 +1281,6 @@ $('refresh').addEventListener('click',function(){loadBoard(true)});
 radius=prefs.radius||0;drawBase();baseNote();
 loadBoard(false);
 cloudStart();
-$('ftoggle').addEventListener('click',function(){var o=this.getAttribute('aria-expanded')!=='true';this.setAttribute('aria-expanded',o);$('areabar').classList.toggle('show',o)});
 setInterval(function(){var a=document.activeElement;if(viewer.hidden&&panel.hidden&&$("minepanel").hidden&&!(a&&(a.tagName==='INPUT'||a.tagName==='SELECT')))render()},60000);
 </script>
 </body>
