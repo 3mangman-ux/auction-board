@@ -706,7 +706,7 @@ function liveList(){
     var mo=MON[m[1]], y=ty+(mo<tm-6?1:0), hh=m[3]?((+m[3])%12+(m[5]==='PM'?12:0)):null;
     var w=String(u.where||''), dot=w.indexOf('. '), place=dot>0?w.slice(0,dot):w.replace(/\.$/,''), rest=dot>0?w.slice(dot+2):'';
     var mid=/Midwest Auto/i.test(place), src=null; cs.forEach(function(x){if(!src&&(mid?/Midwest Auto/i:/Police/i).test(x.name||''))src=x});
-    out.push({id:'car'+i,kind:'cars',n:y*10000+mo*100+(+m[2]),time:hh==null?null:(hh<10?'0':'')+hh+':'+m[4],
+    out.push({id:'car'+i,kind:'cars',n:y*10000+mo*100+(+m[2]),date:y+'-'+(mo<10?'0':'')+mo+'-'+((+m[2])<10?'0':'')+(+m[2]),time:hh==null?null:(hh<10?'0':'')+hh+':'+m[4],
       title:(mid?'':'Detroit Police vehicle auction at ')+place.split(',')[0],who:mid?'':'City of Detroit',addr:place+', MI',city:'',
       note:(rest?rest+' ':'')+'Rules and vehicle lists are on the Cars tab.',url:src?src.url:'',status:'ok'});
   });
@@ -771,7 +771,7 @@ var TZ='America/Detroit';
 var BOARD=null, loadError=false, tab='storage', filter='all';
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function fmt(d,o){o.timeZone=TZ;try{return new Intl.DateTimeFormat('en-US',o).format(d)}catch(e){return d.toISOString()}}
+function fmt(d,o){o.timeZone=TZ;try{return new Intl.DateTimeFormat('en-US',o).format(d)}catch(e){return isNaN(d)?'':d.toISOString()}}
 function dayKey(d){return fmt(d,{year:'numeric',month:'2-digit',day:'2-digit'})}
 function dayText(d){return fmt(d,{weekday:'short',month:'short',day:'numeric'})}
 function timeText(d){return fmt(d,{hour:'numeric',minute:'2-digit'})}
@@ -1407,7 +1407,7 @@ function renderDash(now){
     '<div class="kpi fresh '+fcls+'">'+icon('db')+'<b>'+relAge(age)+'</b><span>data age'+(PUBLISHED?', published '+esc(PUBLISHED.replace(/^\d{4}-/,'')):'')+'</span><i class="bar"><i style="width:'+fpct+'%"></i></i></div></div>';
   var cats='<div class="cats">'+CATS.map(function(c){
     var rows,big,lab;
-    if(c.t==='live'){var nx=live[0];big=live.length;lab='dated events';rows=nx?'<li>Next: '+esc(dayText(new Date(nx.date+'T12:00:00')))+(nx.time?', '+esc(nx.time):'')+'</li><li>'+esc(String(nx.title).slice(0,46))+'</li>':'<li>No dated event yet</li>'}
+    if(c.t==='live'){var nx=live[0];big=live.length;lab='dated events';rows=nx?'<li>Next: '+esc(dayText(new Date(Math.floor(nx.n/10000),Math.floor(nx.n/100)%100-1,nx.n%100,12)))+(nx.time?', '+esc(nx.time):'')+'</li><li>'+esc(String(nx.title).slice(0,46))+'</li>':'<li>No dated event yet</li>'}
     else{var a=all.filter(function(o){return o.t===c.t}),src=(BOARD[c.t]&&BOARD[c.t].sources)||[];
       big=a.length;lab=a.length?'open listings':(src.length+' places to buy');
       var lo=a.filter(function(o){return typeof o.x.bid==='number'}).map(function(o){return o.x.bid}).sort(function(p,q){return p-q})[0];
